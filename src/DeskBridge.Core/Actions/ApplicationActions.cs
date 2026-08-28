@@ -8,6 +8,7 @@ public sealed class ApplicationRegistry
 {
     private readonly IReadOnlyDictionary<string, string> _applications = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
+        ["deskbridge"] = Path.Combine(AppContext.BaseDirectory, "DeskBridge.App.exe"),
         ["vscode"] = "code",
         ["notepad"] = "notepad.exe",
         ["calculator"] = "calc.exe",
@@ -16,6 +17,19 @@ public sealed class ApplicationRegistry
     };
 
     public bool TryResolve(string alias, out string program) => _applications.TryGetValue(alias, out program!);
+}
+
+public sealed class GetStatusAction : IDeskBridgeAction
+{
+    public string Name => "get_status";
+
+    public Task<ActionResult> ExecuteAsync(JsonElement arguments, ActionContext context, CancellationToken cancellationToken) =>
+        Task.FromResult(ActionResult.Ok(new
+        {
+            connected = true,
+            workspace = context.WorkspaceGuard.WorkspaceRoot,
+            host = "com.deskbridge.host"
+        }));
 }
 
 public sealed class OpenFolderAction : IDeskBridgeAction

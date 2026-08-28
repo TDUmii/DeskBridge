@@ -8,7 +8,7 @@ public static class PermissionCatalog
 {
     private static readonly HashSet<string> SafeActions = new(StringComparer.OrdinalIgnoreCase)
     {
-        "read_file", "list_folder", "inspect_image", "get_active_window"
+        "get_status", "read_file", "list_folder", "inspect_image", "get_active_window"
     };
 
     public static async Task<bool> IsAllowedAsync(
