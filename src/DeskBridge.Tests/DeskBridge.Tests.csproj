@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DeskBridge.Core\DeskBridge.Core.csproj" />
+    <ProjectReference Include="..\DeskBridge.Host\DeskBridge.Host.csproj" />
   </ItemGroup>
 
 </Project>
