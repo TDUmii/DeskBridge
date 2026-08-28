@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "DeskBridge",
+  "version": "1.0.0",
+  "description": "Run explicit DeskBridge action blocks from ChatGPT Web.",
+  "permissions": ["nativeMessaging", "storage"],
+  "host_permissions": ["https://chatgpt.com/*"],
+  "background": {
+    "service_worker": "background/index.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*"],
+      "js": ["content/index.js"],
+      "css": ["content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "DeskBridge",
+    "default_popup": "popup/popup.html"
+  }
+}

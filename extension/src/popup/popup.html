@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DeskBridge</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+  <main>
+    <header><div><h1>DeskBridge</h1><p>Local actions for ChatGPT</p></div><span id="status" class="status pending">Checking…</span></header>
+    <section><span class="label">Workspace</span><strong id="workspace">Not available</strong></section>
+    <section><span class="label">Last action</span><strong id="lastAction">None this session</strong></section>
+    <div id="error" class="error" hidden></div>
+    <footer><button id="open" class="primary">Open DeskBridge</button><button id="disconnect">Disconnect</button></footer>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
