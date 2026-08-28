@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using DeskBridge.Core.Models;
+using DeskBridge.Core.Security;
 using DeskBridge.Core.Services;
 
 namespace DeskBridge.Core.Actions;
@@ -12,7 +13,7 @@ public sealed class ActionRegistry(
     private readonly IReadOnlyDictionary<string, IDeskBridgeAction> _actions = actions
         .ToDictionary(action => action.Name, StringComparer.OrdinalIgnoreCase);
 
-    public IReadOnlyCollection<string> Names => _actions.Keys;
+    public IReadOnlyCollection<string> Names => _actions.Keys.ToArray();
 
     public async Task<ActionResult> ExecuteAsync(
         ActionRequest request,
