@@ -1,5 +1,5 @@
 export const allowedActions = new Set([
-  "get_status", "read_file", "write_file", "create_file", "create_folder", "list_folder",
+  "get_status", "open_deskbridge", "read_file", "write_file", "create_file", "create_folder", "list_folder",
   "create_project", "update_project", "patch_file", "get_clipboard", "set_clipboard",
   "open_folder", "open_app", "open_project", "open_in_browser", "preview_web", "run_command",
   "capture_screen", "get_active_window", "download_asset", "import_asset", "inspect_image",

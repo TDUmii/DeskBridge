@@ -32,6 +32,25 @@ public sealed class GetStatusAction : IDeskBridgeAction
         }));
 }
 
+public sealed class OpenDeskBridgeAction : IDeskBridgeAction
+{
+    public string Name => "open_deskbridge";
+
+    public Task<ActionResult> ExecuteAsync(JsonElement arguments, ActionContext context, CancellationToken cancellationToken)
+    {
+        var candidates = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "DeskBridge.App.exe"),
+            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "DeskBridge.App", "bin", "Debug", "net8.0-windows", "DeskBridge.App.exe"))
+        };
+        var executable = candidates.FirstOrDefault(File.Exists);
+        if (executable is null)
+            return Task.FromResult(ActionResult.Fail(ErrorCodes.AppNotFound, "DeskBridge.App.exe was not found. Build or package the desktop app first."));
+        Process.Start(new ProcessStartInfo(executable) { UseShellExecute = true });
+        return Task.FromResult(ActionResult.Ok(new { opened = true }));
+    }
+}
+
 public sealed class OpenFolderAction : IDeskBridgeAction
 {
     public string Name => "open_folder";

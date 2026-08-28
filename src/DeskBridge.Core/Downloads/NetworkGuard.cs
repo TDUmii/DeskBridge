@@ -5,9 +5,9 @@ using DeskBridge.Core.Models;
 
 namespace DeskBridge.Core.Downloads;
 
-public sealed class NetworkGuard
+public class NetworkGuard
 {
-    public async Task<IReadOnlyList<IPAddress>> ResolvePublicAsync(string host, CancellationToken cancellationToken)
+    public virtual async Task<IReadOnlyList<IPAddress>> ResolvePublicAsync(string host, CancellationToken cancellationToken)
     {
         if (string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) || host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase))
         {

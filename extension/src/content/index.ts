@@ -79,7 +79,13 @@ function enhanceImages(): void {
   for (const item of images.findGeneratedImages()) {
     const save = button("Save to DeskBridge", "deskbridge-button deskbridge-image-button");
     save.addEventListener("click", async () => {
-      const destination = window.prompt("Destination path inside the current DeskBridge workspace:", "assets\\images\\image.png");
+      const status = await run({ version: 1, id: newId("status"), action: "get_status", arguments: {} });
+      const workspace = status.success ? (status.data as { workspace?: string }).workspace : undefined;
+      if (!workspace) {
+        window.alert("Open DeskBridge and choose a workspace before saving this image.");
+        return;
+      }
+      const destination = window.prompt("Destination path inside the current DeskBridge workspace:", `${workspace}\\assets\\images\\image.png`);
       if (!destination) return;
       const response = await run({ version: 1, id: newId("image"), action: "download_asset",
         arguments: { url: item.sourceUrl, destination } });

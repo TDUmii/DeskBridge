@@ -13,7 +13,19 @@ public sealed class DownloadAssetAction(SecureImageDownloader downloader) : IDes
     {
         var url = arguments.RequiredString("url");
         var destination = context.WorkspaceGuard.EnsureInside(arguments.RequiredString("destination"), false);
-        var downloaded = await downloader.DownloadAsync(url, cancellationToken).ConfigureAwait(false);
+        DownloadedImage downloaded;
+        try
+        {
+            downloaded = await downloader.DownloadAsync(url, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return ActionResult.Fail(ErrorCodes.DownloadTimeout, "Download exceeded the 30-second timeout.");
+        }
+        catch (HttpRequestException exception)
+        {
+            return ActionResult.Fail(ErrorCodes.ExecutionFailed, $"Download failed: {exception.Message}");
+        }
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
         var temporary = destination + ".deskbridge-tmp";
         await File.WriteAllBytesAsync(temporary, downloaded.Bytes, cancellationToken).ConfigureAwait(false);

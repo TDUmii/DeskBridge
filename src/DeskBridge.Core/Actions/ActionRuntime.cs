@@ -13,7 +13,7 @@ public static class ActionRuntime
         var applicationRegistry = new ApplicationRegistry();
         IDeskBridgeAction[] actions =
         [
-            new GetStatusAction(), new ReadFileAction(), new WriteFileAction(), new CreateFileAction(), new CreateFolderAction(),
+            new GetStatusAction(), new OpenDeskBridgeAction(), new ReadFileAction(), new WriteFileAction(), new CreateFileAction(), new CreateFolderAction(),
             new ListFolderAction(), new PatchFileAction(), new CreateProjectAction(), new UpdateProjectAction(),
             new GetClipboardAction(), new SetClipboardAction(), new OpenFolderAction(),
             new OpenAppAction(applicationRegistry), new OpenProjectAction(applicationRegistry),

@@ -10,10 +10,21 @@ namespace DeskBridge.Core.Downloads;
 
 public sealed record DownloadedImage(byte[] Bytes, string ContentType, Uri FinalUri, string Extension);
 
-public sealed class SecureImageDownloader(NetworkGuard networkGuard)
+public sealed class SecureImageDownloader
 {
     public const int MaxBytes = 20 * 1024 * 1024;
     private const int MaxRedirects = 5;
+    private readonly NetworkGuard _networkGuard;
+    private readonly Func<HttpClient> _clientFactory;
+
+    public SecureImageDownloader(NetworkGuard networkGuard)
+        : this(networkGuard, () => CreatePinnedClient(networkGuard)) { }
+
+    public SecureImageDownloader(NetworkGuard networkGuard, Func<HttpClient> clientFactory)
+    {
+        _networkGuard = networkGuard;
+        _clientFactory = clientFactory;
+    }
 
     public async Task<DownloadedImage> DownloadAsync(string url, CancellationToken cancellationToken)
     {
@@ -25,7 +36,8 @@ public sealed class SecureImageDownloader(NetworkGuard networkGuard)
         for (var redirect = 0; redirect <= MaxRedirects; redirect++)
         {
             ValidateHttps(current);
-            using var client = CreatePinnedClient(networkGuard);
+            await _networkGuard.ResolvePublicAsync(current.Host, cancellationToken).ConfigureAwait(false);
+            using var client = _clientFactory();
             using var request = new HttpRequestMessage(HttpMethod.Get, current);
             request.Headers.UserAgent.ParseAdd("DeskBridge/1.0");
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)

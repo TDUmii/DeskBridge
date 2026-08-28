@@ -30,7 +30,7 @@ document.querySelector("#disconnect")!.addEventListener("click", async () => {
 
 document.querySelector("#open")!.addEventListener("click", async () => {
   const response = await chrome.runtime.sendMessage({ type: "run", request: {
-    version: 1, id: newId("open"), action: "open_app", arguments: { app: "deskbridge" }
+    version: 1, id: newId("open"), action: "open_deskbridge", arguments: {}
   } }) as DeskBridgeResponse;
   if (!response.success) {
     error.hidden = false;

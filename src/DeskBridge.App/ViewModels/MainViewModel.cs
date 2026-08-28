@@ -43,8 +43,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public async Task SavePermissionAsync(PermissionRow row)
     {
-        var permissions = new Dictionary<string, string>(_settings.Permissions, StringComparer.OrdinalIgnoreCase)
-        { [row.Action] = row.Policy switch { "Allowed" => "allowed", "Blocked" => "denied", _ => "ask" } };
+        var permissions = new Dictionary<string, string>(_settings.Permissions, StringComparer.OrdinalIgnoreCase);
+        foreach (var action in row.Actions)
+            permissions[action] = row.Policy switch { "Allowed" => "allowed", "Blocked" => "denied", _ => "ask" };
         _settings = _settings with { Permissions = permissions };
         await _settingsStore.SaveAsync(_settings);
     }
@@ -67,18 +68,18 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private void BuildPermissions()
     {
         Permissions.Clear();
-        AddPermission("Read files", "Read files and inspect folders in the workspace.", "read_file", "allowed");
-        AddPermission("Write files", "Create, update, and patch workspace content.", "write_file", "ask");
-        AddPermission("Run commands", "Run an allowed program with an argument list.", "run_command", "ask");
-        AddPermission("Assets", "Download, import, resize, compress, and convert images.", "download_asset", "ask");
-        AddPermission("Screenshots", "Capture the primary monitor to a local temp file.", "capture_screen", "ask");
+        AddPermission("Read files", "Read files and inspect folders in the workspace.", ["read_file", "list_folder"], "allowed");
+        AddPermission("Write files", "Create, update, and patch workspace content.", ["write_file", "create_file", "create_folder", "create_project", "update_project", "patch_file"], "ask");
+        AddPermission("Run commands", "Run an allowed program with an argument list.", ["run_command"], "ask");
+        AddPermission("Assets", "Download, import, resize, compress, and convert images.", ["download_asset", "import_asset", "resize_image", "compress_image", "convert_image"], "ask");
+        AddPermission("Screenshots", "Capture the primary monitor to a local temp file.", ["capture_screen"], "ask");
     }
 
-    private void AddPermission(string label, string description, string action, string defaultPolicy)
+    private void AddPermission(string label, string description, IReadOnlyList<string> actions, string defaultPolicy)
     {
-        var value = _settings.Permissions.GetValueOrDefault(action, defaultPolicy) switch
+        var value = _settings.Permissions.GetValueOrDefault(actions[0], defaultPolicy) switch
         { "allowed" => "Allowed", "denied" => "Blocked", _ => "Ask" };
-        Permissions.Add(new PermissionRow(label, description, action, value));
+        Permissions.Add(new PermissionRow(label, description, actions, value));
     }
 
     private async Task RefreshAssetsAsync()
