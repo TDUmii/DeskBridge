@@ -1,4 +1,4 @@
-:root { color-scheme: light; font: 14px/1.45 system-ui, "Segoe UI", sans-serif; color: #17212a; background: #f3f1ec; }
+:root { color-scheme: light dark; font: 14px/1.45 system-ui, "Segoe UI", sans-serif; color: #17212a; background: #f3f1ec; }
 body { margin: 0; min-width: 340px; }
 main { padding: 18px; }
 header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
@@ -10,3 +10,15 @@ section { border-top: 1px solid #d7d3ca; padding: 13px 0; } .label { display: bl
 footer { display: flex; gap: 8px; margin-top: 18px; }
 button { flex: 1; border: 1px solid #aeb7bf; border-radius: 9px; background: #fff; color: #17212a; padding: 9px; font-weight: 650; cursor: pointer; }
 button:hover { background: #edf1f4; } button:focus-visible { outline: 3px solid #70a8df; outline-offset: 2px; } button.primary { border-color: #1262a3; background: #1262a3; color: #fff; } button.primary:hover { background: #0d4f86; }
+@media (prefers-color-scheme: dark) {
+  :root { color: #edf2f5; background: #101418; }
+  p, .label { color: #a8b3bc; }
+  section { border-color: #303940; }
+  button { border-color: #56636d; background: #20272d; color: #edf2f5; }
+  button:hover { background: #29333b; }
+  button.primary { border-color: #4c9fe3; background: #357fbd; color: #fff; }
+  button.primary:hover { background: #276a9f; }
+  .status.connected { background: #173b30; color: #66d1aa; }
+  .status.error, .error { background: #442523; color: #f09a94; }
+  .status.pending { background: #3c321b; color: #e8c56d; }
+}

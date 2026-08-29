@@ -20,6 +20,7 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             await _viewModel.InitializeAsync();
+            ((App)Application.Current).ThemeService.Apply(_viewModel.SelectedTheme);
             _ = new PermissionBroker().RunAsync(_permissionCancellation.Token);
         };
         Closed += (_, _) => _permissionCancellation.Cancel();
@@ -41,6 +42,21 @@ public partial class MainWindow : Window
     private async void Permission_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is ComboBox { DataContext: PermissionRow row } && IsLoaded) await _viewModel.SavePermissionAsync(row);
+    }
+    private async void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ComboBox { SelectedItem: string mode } || !IsLoaded) return;
+        await _viewModel.SaveThemeAsync(mode);
+        ((App)Application.Current).ThemeService.Apply(mode);
+    }
+    private async void Skill_CheckedChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox { DataContext: SkillIntegrationRow row } && IsLoaded)
+            await _viewModel.SaveSkillIntegrationAsync(row);
+    }
+    private void CopySkillInstruction_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: SkillIntegrationRow row }) Clipboard.SetText(row.Instruction);
     }
     private void OpenLogs_Click(object sender, RoutedEventArgs e) => MainViewModel.OpenLogs();
     private void ClearLogs_Click(object sender, RoutedEventArgs e) => _viewModel.ClearLogs();

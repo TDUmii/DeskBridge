@@ -57,6 +57,11 @@ public static class ErrorCodes
     public const string PatchTargetNotUnique = "PATCH_TARGET_NOT_UNIQUE";
     public const string ProjectPathInvalid = "PROJECT_PATH_INVALID";
     public const string AssetImportDenied = "ASSET_IMPORT_DENIED";
+    public const string SkillDisabled = "SKILL_DISABLED";
+    public const string SkillRuntimeUnavailable = "SKILL_RUNTIME_UNAVAILABLE";
+    public const string UnsupportedDocumentFormat = "UNSUPPORTED_DOCUMENT_FORMAT";
+    public const string DocumentConversionFailed = "DOCUMENT_CONVERSION_FAILED";
+    public const string DocumentOcrRequired = "DOCUMENT_OCR_REQUIRED";
 }
 
 public static class DeskBridgeJson

@@ -3,16 +3,18 @@ import { DeskBridgeResponse, newId } from "../shared/protocol.js";
 const status = document.querySelector<HTMLSpanElement>("#status")!;
 const workspace = document.querySelector<HTMLElement>("#workspace")!;
 const error = document.querySelector<HTMLDivElement>("#error")!;
+const skills = document.querySelector<HTMLElement>("#skills")!;
 
 async function refresh(): Promise<void> {
   const response = await chrome.runtime.sendMessage({ type: "run", request: {
     version: 1, id: newId("status"), action: "get_status", arguments: {}
   } }) as DeskBridgeResponse;
   if (response.success) {
-    const data = response.data as { workspace?: string };
+    const data = response.data as { workspace?: string; skills?: Array<{ name: string; enabled: boolean }> };
     status.textContent = "● Connected";
     status.className = "status connected";
     workspace.textContent = data.workspace ?? "No workspace selected";
+    skills.textContent = data.skills?.filter(skill => skill.enabled).map(skill => skill.name).join(", ") || "None";
     error.hidden = true;
   } else {
     status.textContent = "Disconnected";

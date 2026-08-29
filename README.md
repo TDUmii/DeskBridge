@@ -8,7 +8,7 @@ DeskBridge contains no LLM. ChatGPT understands the request and writes code; Des
 
 - Windows 10 or Windows 11 (x64 package target)
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- Node.js 18 or newer and npm
+- Node.js 20 or newer and npm (required by the optional document-to-Markdown adapter)
 - Google Chrome
 - Git
 
@@ -94,8 +94,21 @@ Normal code blocks get **Save file**, which asks for an explicit absolute path i
 | Commands | `run_command` | Ask |
 | Windows | `capture_screen` | Ask |
 | Assets/images | `download_asset`, `import_asset`, `resize_image`, `compress_image`, `convert_image` | Ask |
+| Skills | `get_skill_profile` | Allowed |
+| Document conversion | `convert_document_to_markdown` | Ask |
 
 V1 deliberately has no delete action, arbitrary shell, registry-edit action, shutdown/restart, mouse/keyboard control, credential extraction, browser profile access, ChatGPT token/cookie access, private ChatGPT API, or automatic form/message submission.
+
+## Appearance and skill integrations
+
+The Settings tab offers **System**, **Light**, and **Dark** appearance modes. System mode follows the Windows app-theme preference, and the Chrome extension follows Chrome's system color preference.
+
+Skill integrations are deliberately typed:
+
+- **Convert documents to Markdown** is an executable adapter. Enable it in Settings, leave its permission on Ask, and use `convert_document_to_markdown` with source and `.md` destination paths inside the selected workspace. DeskBridge invokes `@firecrawl/anydoc` through a known npm runner—never an arbitrary shell command. The first run may download the converter package. Hosted OCR is disabled, so an OCR-only document returns `DOCUMENT_OCR_REQUIRED` instead of uploading the file.
+- **Impeccable** is a guidance profile. Enabling it exposes a reusable UI-quality instruction through `get_skill_profile`, and **Copy instruction** places that text on the clipboard. DeskBridge contains no local LLM and does not claim to execute the Codex skill itself.
+
+The converter uses the bundled Codex Node runtime when available, otherwise `npx.cmd` from `PATH`. Set `DESKBRIDGE_NPX_PATH` to an explicit trusted `npx.cmd` if needed.
 
 ## Security
 
@@ -188,6 +201,10 @@ Some generated-image URLs need a signed-in browser session. DeskBridge will not 
 ### ImageSharp licensing
 
 DeskBridge is MIT licensed, but ImageSharp has its own Six Labors Split License. Read [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and confirm your distribution/use qualifies or obtain the appropriate Six Labors license.
+
+### Document converter is unavailable
+
+Install Node.js 20+ with npm, restart DeskBridge, and confirm `npx.cmd` is available. Codex Desktop's bundled runtime is detected automatically on machines where it is installed. Conversion remains disabled until you enable **Convert documents to Markdown** in Settings.
 
 ## Documentation
 

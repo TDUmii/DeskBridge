@@ -19,3 +19,21 @@ public sealed class PermissionRow : INotifyPropertyChanged
 }
 
 public sealed record AssetRow(string Name, string Dimensions, string Size, string Path);
+
+public sealed class SkillIntegrationRow : INotifyPropertyChanged
+{
+    private bool _enabled;
+    public SkillIntegrationRow(string id, string name, string kind, string description, string instruction, bool enabled) =>
+        (Id, Name, Kind, Description, Instruction, _enabled) = (id, name, kind, description, instruction, enabled);
+    public string Id { get; }
+    public string Name { get; }
+    public string Kind { get; }
+    public string Description { get; }
+    public string Instruction { get; }
+    public bool Enabled
+    {
+        get => _enabled;
+        set { if (_enabled == value) return; _enabled = value; PropertyChanged?.Invoke(this, new(nameof(Enabled))); }
+    }
+    public event PropertyChangedEventHandler? PropertyChanged;
+}

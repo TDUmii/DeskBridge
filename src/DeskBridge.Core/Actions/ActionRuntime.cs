@@ -3,6 +3,7 @@ using DeskBridge.Core.Images;
 using DeskBridge.Core.Projects;
 using DeskBridge.Core.Security;
 using DeskBridge.Core.Services;
+using DeskBridge.Core.Skills;
 
 namespace DeskBridge.Core.Actions;
 
@@ -13,14 +14,15 @@ public static class ActionRuntime
         var applicationRegistry = new ApplicationRegistry();
         IDeskBridgeAction[] actions =
         [
-            new GetStatusAction(), new OpenDeskBridgeAction(), new ReadFileAction(), new WriteFileAction(), new CreateFileAction(), new CreateFolderAction(),
+            new GetStatusAction(), new GetSkillProfileAction(), new OpenDeskBridgeAction(), new ReadFileAction(), new WriteFileAction(), new CreateFileAction(), new CreateFolderAction(),
             new ListFolderAction(), new PatchFileAction(), new CreateProjectAction(), new UpdateProjectAction(),
             new GetClipboardAction(), new SetClipboardAction(), new OpenFolderAction(),
             new OpenAppAction(applicationRegistry), new OpenProjectAction(applicationRegistry),
             new OpenInBrowserAction(), new PreviewWebAction(), new RunCommandAction(new CommandRunner()),
             new CaptureScreenAction(), new GetActiveWindowAction(),
             new DownloadAssetAction(new SecureImageDownloader(new NetworkGuard())), new ImportAssetAction(),
-            new InspectImageAction(), new ResizeImageAction(), new CompressImageAction(), new ConvertImageAction()
+            new InspectImageAction(), new ResizeImageAction(), new CompressImageAction(), new ConvertImageAction(),
+            new ConvertDocumentToMarkdownAction(new AnyDocDocumentConverter())
         ];
         return new ActionRegistry(actions, permissionService ?? new NamedPipePermissionService());
     }

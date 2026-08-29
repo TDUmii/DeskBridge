@@ -31,6 +31,12 @@ There is no arbitrary shell action. `powershell`, `pwsh`, `cmd`, WSH, and unknow
 
 The allowed interpreters (`python`, `py`, `node`, `npm`, and `dotnet`) can execute project code. They therefore remain confirmation actions. DeskBridge does not claim that a confirmed interpreter invocation is sandboxed.
 
+## Skill adapters
+
+Local Codex skill folders are not automatically executable APIs. DeskBridge registers each integration explicitly. The document adapter accepts only supported document extensions, requires source and destination inside the workspace, requires a `.md` destination, invokes a fixed package entrypoint with an argument list, has a five-minute limit, and defaults to Ask. It never passes user input through a shell. Hosted OCR is intentionally unavailable because it would upload document content to a third party.
+
+Guidance profiles such as Impeccable only expose user-visible instruction text. They cannot run code or silently add instructions to ChatGPT messages.
+
 ## Download SSRF protection
 
 Production downloads accept HTTPS only and reject embedded URL credentials. Every redirect is handled manually. The connection callback resolves the current hop, rejects loopback/private/link-local/carrier-grade NAT/benchmark/reserved IPv4 and local/link/site/unique-local IPv6, then connects the socket to a validated address. Redirects are revalidated up to five hops. The body is limited to 20 MB and a 30-second timeout.

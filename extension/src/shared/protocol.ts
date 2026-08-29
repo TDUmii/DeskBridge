@@ -3,7 +3,7 @@ export const allowedActions = new Set([
   "create_project", "update_project", "patch_file", "get_clipboard", "set_clipboard",
   "open_folder", "open_app", "open_project", "open_in_browser", "preview_web", "run_command",
   "capture_screen", "get_active_window", "download_asset", "import_asset", "inspect_image",
-  "resize_image", "compress_image", "convert_image"
+  "resize_image", "compress_image", "convert_image", "get_skill_profile", "convert_document_to_markdown"
 ]);
 
 export interface DeskBridgeRequest {

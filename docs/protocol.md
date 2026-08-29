@@ -50,7 +50,7 @@ Errors use a stable code and a recoverable message:
 
 | Area | Actions |
 |---|---|
-| Control | `get_status`, `open_deskbridge` |
+| Control | `get_status`, `get_skill_profile`, `open_deskbridge` |
 | Files | `read_file`, `write_file`, `create_file`, `create_folder`, `list_folder`, `patch_file` |
 | Projects | `create_project`, `update_project` |
 | Clipboard | `get_clipboard`, `set_clipboard` |
@@ -59,10 +59,11 @@ Errors use a stable code and a recoverable message:
 | Windows | `capture_screen`, `get_active_window` |
 | Assets | `download_asset`, `import_asset` |
 | Images | `inspect_image`, `resize_image`, `compress_image`, `convert_image` |
+| Documents | `convert_document_to_markdown` |
 
 ## Error codes
 
-`INVALID_REQUEST`, `UNKNOWN_ACTION`, `ACTION_NOT_ALLOWED`, `PERMISSION_DENIED`, `WORKSPACE_VIOLATION`, `FILE_NOT_FOUND`, `FILE_ALREADY_EXISTS`, `APP_NOT_FOUND`, `COMMAND_NOT_ALLOWED`, `COMMAND_TIMEOUT`, `EXECUTION_FAILED`, `INTERNAL_ERROR`, `INVALID_URL`, `UNSUPPORTED_PROTOCOL`, `PRIVATE_NETWORK_BLOCKED`, `DOWNLOAD_TOO_LARGE`, `DOWNLOAD_TIMEOUT`, `INVALID_CONTENT_TYPE`, `UNSUPPORTED_IMAGE_FORMAT`, `IMAGE_PROCESSING_FAILED`, `PATCH_TARGET_NOT_FOUND`, `PATCH_TARGET_NOT_UNIQUE`, `PROJECT_PATH_INVALID`, and `ASSET_IMPORT_DENIED`.
+`INVALID_REQUEST`, `UNKNOWN_ACTION`, `ACTION_NOT_ALLOWED`, `PERMISSION_DENIED`, `WORKSPACE_VIOLATION`, `FILE_NOT_FOUND`, `FILE_ALREADY_EXISTS`, `APP_NOT_FOUND`, `COMMAND_NOT_ALLOWED`, `COMMAND_TIMEOUT`, `EXECUTION_FAILED`, `INTERNAL_ERROR`, `INVALID_URL`, `UNSUPPORTED_PROTOCOL`, `PRIVATE_NETWORK_BLOCKED`, `DOWNLOAD_TOO_LARGE`, `DOWNLOAD_TIMEOUT`, `INVALID_CONTENT_TYPE`, `UNSUPPORTED_IMAGE_FORMAT`, `IMAGE_PROCESSING_FAILED`, `PATCH_TARGET_NOT_FOUND`, `PATCH_TARGET_NOT_UNIQUE`, `PROJECT_PATH_INVALID`, `ASSET_IMPORT_DENIED`, `SKILL_DISABLED`, `SKILL_RUNTIME_UNAVAILABLE`, `UNSUPPORTED_DOCUMENT_FORMAT`, `DOCUMENT_CONVERSION_FAILED`, and `DOCUMENT_OCR_REQUIRED`.
 
 ## Compatibility
 

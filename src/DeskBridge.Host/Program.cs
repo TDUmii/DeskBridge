@@ -3,6 +3,7 @@ using DeskBridge.Core.Actions;
 using DeskBridge.Core.Models;
 using DeskBridge.Core.Services;
 using DeskBridge.Host.NativeMessaging;
+using DeskBridge.Core.Skills;
 
 var settingsStore = new SettingsStore();
 var activityLogger = new ActivityLogger();
@@ -43,8 +44,16 @@ while (true)
                     connected = true,
                     workspace = settings.WorkspacePath,
                     workspaceMode = settings.WorkspaceMode,
+                    themeMode = settings.ThemeMode,
+                    skills = SkillCatalog.All.Select(skill => new { skill.Id, skill.Name, enabled = SkillCatalog.IsEnabled(settings, skill.Id) }),
                     host = "com.deskbridge.host"
                 }, null);
+            }
+            else if (string.Equals(request.Action, "get_skill_profile", StringComparison.OrdinalIgnoreCase))
+            {
+                var profileContext = ActionRuntime.CreateContext(settings.WorkspacePath ?? Path.GetTempPath(), settingsStore, activityLogger);
+                response = ActionResponse.FromResult(request.Id,
+                    await registry.ExecuteAsync(request, profileContext, CancellationToken.None));
             }
             else if (string.Equals(request.Action, "open_deskbridge", StringComparison.OrdinalIgnoreCase) &&
                      string.IsNullOrWhiteSpace(settings.WorkspacePath))

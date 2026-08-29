@@ -62,3 +62,17 @@ Run `download_asset`, then inspect and convert it:
 ```json
 {"version":1,"id":"preview-1","action":"preview_web","arguments":{"rootPath":"D:\\Projects\\Demo","entryFile":"index.html"}}
 ```
+
+## Convert a document to Markdown
+
+Enable **Convert documents to Markdown** in DeskBridge Settings first. Both paths must be inside the selected workspace.
+
+```json
+{"version":1,"id":"document-1","action":"convert_document_to_markdown","arguments":{"source":"D:\\Projects\\Demo\\lesson.docx","destination":"D:\\Projects\\Demo\\notes\\lesson.md","overwrite":false}}
+```
+
+## Read enabled skill guidance
+
+```json
+{"version":1,"id":"skills-1","action":"get_skill_profile","arguments":{}}
+```
