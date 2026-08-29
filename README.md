@@ -65,7 +65,7 @@ The generated manifest contains the local absolute host path and is written to `
 
 ## Install the Windows release
 
-1. Download and extract `DeskBridge-v1.1.1-win-x64.zip` to a stable folder.
+1. Download and extract `DeskBridge-v1.1.2-win-x64.zip` to a stable folder.
 2. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted `extension` folder.
 3. Double-click `Install-DeskBridge.cmd`. It registers the fixed extension ID and opens the app.
 

@@ -36,13 +36,28 @@ $manifest = [ordered]@{
     type = 'stdio'
     allowed_origins = @("chrome-extension://$ExtensionId/")
 }
-$manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $manifestPath -Encoding utf8
+$manifestJson = $manifest | ConvertTo-Json -Depth 4
+[System.IO.File]::WriteAllText($manifestPath, $manifestJson, [System.Text.UTF8Encoding]::new($false))
 
-$registryPath = 'HKCU:\Software\Google\Chrome\NativeMessagingHosts\com.deskbridge.host'
-New-Item -Path $registryPath -Force | Out-Null
-Set-Item -Path $registryPath -Value $manifestPath
+$registrySubKey = 'Software\Google\Chrome\NativeMessagingHosts\com.deskbridge.host'
+foreach ($registryView in @([Microsoft.Win32.RegistryView]::Registry32, [Microsoft.Win32.RegistryView]::Registry64)) {
+    $baseKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::CurrentUser, $registryView)
+    try {
+        $hostKey = $baseKey.CreateSubKey($registrySubKey, $true)
+        try {
+            $hostKey.SetValue('', $manifestPath, [Microsoft.Win32.RegistryValueKind]::String)
+        }
+        finally {
+            $hostKey.Dispose()
+        }
+    }
+    finally {
+        $baseKey.Dispose()
+    }
+}
 
 Write-Host 'DeskBridge Native Messaging host registered.'
 Write-Host "Host: $resolvedHost"
 Write-Host "Manifest: $manifestPath"
 Write-Host "Extension origin: chrome-extension://$ExtensionId/"
+Write-Host 'Registry views: 32-bit and 64-bit current user.'
