@@ -1,0 +1,7 @@
+DESKBRIDGE - INSTALL IN 3 STEPS
+
+1. Extract the entire ZIP to a stable folder.
+2. In chrome://extensions, enable Developer mode, click Load unpacked, and choose the extension folder.
+3. Double-click Install-DeskBridge.cmd. DeskBridge will register and open automatically.
+
+Later, run DeskBridge.App.exe normally. No .NET install or API key is required.

@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [ValidatePattern('^[a-p]{32}$')]
-    [string]$ExtensionId,
+    [string]$ExtensionId = 'chhimbcahcjjpggdlahimdcaohaaehhm',
     [string]$HostPath
 )
 

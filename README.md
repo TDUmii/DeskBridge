@@ -65,18 +65,11 @@ The generated manifest contains the local absolute host path and is written to `
 
 ## Install the Windows release
 
-1. Download `DeskBridge-v1.0.0-win-x64.zip` from GitHub Releases and extract the whole folder to a stable location. Do not run the app from inside the ZIP.
+1. Download and extract `DeskBridge-v1.0.0-win-x64.zip` to a stable folder.
 2. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted `extension` folder.
-3. Copy the 32-character extension ID displayed by Chrome.
-4. From PowerShell in the extracted DeskBridge folder, register the included native host:
+3. Double-click `Install-DeskBridge.cmd`. It registers the fixed extension ID and opens the app.
 
-   ```powershell
-   .\scripts\install-native-host.ps1 -ExtensionId <your-extension-id>
-   ```
-
-5. Reload the extension, start `DeskBridge.App.exe`, choose a local folder, and sign in to ChatGPT Web normally in Chrome.
-
-The package is self-contained for Windows x64 and does not require a separate .NET installation. Keep the extracted folder in place after registration because Chrome's Native Messaging manifest points to its `DeskBridge.Host.exe`. To unregister only the host integration, run `.\scripts\uninstall-native-host.ps1`.
+After the first setup, run `DeskBridge.App.exe` normally. The package is self-contained for Windows x64: no separate .NET installation or API key is required. Keep the extracted folder in place because Chrome points to its native host. Double-click `Uninstall-DeskBridge.cmd` to remove only the native registration.
 
 ## How it works
 
