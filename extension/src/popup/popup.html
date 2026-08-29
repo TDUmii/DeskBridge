@@ -3,9 +3,14 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DeskBridge</title><link rel="stylesheet" href="popup.css"></head>
 <body>
   <main>
-    <header><div><h1>DeskBridge</h1><p>ChatGPT Web file agent</p></div><span id="status" class="status pending">Checking…</span></header>
-    <section><span class="label">Workspace</span><strong id="workspace">Not available</strong></section>
-    <section><span class="label">Agent transport</span><strong>ChatGPT Web only</strong><small>GPT-5.6 Sol · High 3/3 required<br>No Codex, Codex workspace, or API fallback</small></section>
+    <header>
+      <img src="../icons/icon-48.png" alt="" width="44" height="44">
+      <div class="identity"><h1>DeskBridge</h1><p>Verified ChatGPT Web file agent</p></div>
+      <span id="status" class="status pending">Checking...</span>
+    </header>
+    <div class="bridge-line" aria-hidden="true"><span></span><i></i><span></span></div>
+    <section><span class="label">Workspace scope</span><strong id="workspace">Not available</strong></section>
+    <section><span class="label">Protected transport</span><strong>ChatGPT Web only</strong><small>GPT-5.6 Sol - High 3/3 required<br>No Codex, workspace, or API fallback</small></section>
     <section><span class="label">Enabled skills</span><strong id="skills">None</strong></section>
     <div id="error" class="error" hidden></div>
     <footer><button id="open" class="primary">Open DeskBridge</button><button id="disconnect">Disconnect</button></footer>

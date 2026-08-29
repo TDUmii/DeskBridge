@@ -50,21 +50,25 @@ internal static class ThemePalette
 {
     public static IReadOnlyDictionary<string, string> Light { get; } = new Dictionary<string, string>
     {
-        ["CanvasBrush"] = "#F4F2ED", ["SurfaceBrush"] = "#FFFFFF", ["InkBrush"] = "#17212A",
-        ["MutedBrush"] = "#64717B", ["LineBrush"] = "#D9D5CC", ["ControlBrush"] = "#FFFFFF",
-        ["ControlHoverBrush"] = "#EEF2F5", ["ControlBorderBrush"] = "#AEB7BF", ["HeaderBrush"] = "#17212A",
-        ["HeaderInkBrush"] = "#FFFFFF", ["HeaderMutedBrush"] = "#BAC5CD", ["PrimaryBrush"] = "#1262A3",
-        ["SuccessBrush"] = "#14785C", ["SuccessSurfaceBrush"] = "#DCEFE8", ["DangerBrush"] = "#8A2926",
-        ["DangerSurfaceBrush"] = "#F8DEDC", ["WarningBrush"] = "#6F5111", ["WarningSurfaceBrush"] = "#F5E9CA"
+        ["CanvasBrush"] = "#F3F6FA", ["SurfaceBrush"] = "#FFFFFF", ["PanelRaisedBrush"] = "#F8FAFD",
+        ["FieldBrush"] = "#FFFFFF", ["InkBrush"] = "#142033", ["MutedBrush"] = "#5B687B",
+        ["LineBrush"] = "#D8E0EA", ["ControlBrush"] = "#FFFFFF", ["ControlHoverBrush"] = "#EAF1F8",
+        ["ControlBorderBrush"] = "#AEBBCB", ["HeaderBrush"] = "#101722", ["HeaderInkBrush"] = "#F7FAFF",
+        ["HeaderMutedBrush"] = "#AEBBCB", ["PrimaryBrush"] = "#147DCC", ["PrimaryHoverBrush"] = "#0B68B0",
+        ["AccentSoftBrush"] = "#DDF3FF", ["FocusBrush"] = "#4CC9F0", ["SuccessBrush"] = "#07866F",
+        ["SuccessSurfaceBrush"] = "#D9F4EC", ["DangerBrush"] = "#A33A43", ["DangerSurfaceBrush"] = "#FCE5E7",
+        ["WarningBrush"] = "#795A09", ["WarningSurfaceBrush"] = "#FAEDC8"
     };
 
     public static IReadOnlyDictionary<string, string> Dark { get; } = new Dictionary<string, string>
     {
-        ["CanvasBrush"] = "#101418", ["SurfaceBrush"] = "#181E23", ["InkBrush"] = "#EDF2F5",
-        ["MutedBrush"] = "#A8B3BC", ["LineBrush"] = "#303940", ["ControlBrush"] = "#20272D",
-        ["ControlHoverBrush"] = "#29333B", ["ControlBorderBrush"] = "#56636D", ["HeaderBrush"] = "#0B0F12",
-        ["HeaderInkBrush"] = "#F7FAFC", ["HeaderMutedBrush"] = "#A9B7C1", ["PrimaryBrush"] = "#4C9FE3",
-        ["SuccessBrush"] = "#66D1AA", ["SuccessSurfaceBrush"] = "#173B30", ["DangerBrush"] = "#F09A94",
-        ["DangerSurfaceBrush"] = "#442523", ["WarningBrush"] = "#E8C56D", ["WarningSurfaceBrush"] = "#3C321B"
+        ["CanvasBrush"] = "#0D1118", ["SurfaceBrush"] = "#161D27", ["PanelRaisedBrush"] = "#1C2531",
+        ["FieldBrush"] = "#101722", ["InkBrush"] = "#F1F6FC", ["MutedBrush"] = "#A8B5C5",
+        ["LineBrush"] = "#2D3948", ["ControlBrush"] = "#1C2531", ["ControlHoverBrush"] = "#263342",
+        ["ControlBorderBrush"] = "#4B5B6D", ["HeaderBrush"] = "#090D13", ["HeaderInkBrush"] = "#F7FAFF",
+        ["HeaderMutedBrush"] = "#AAB8C8", ["PrimaryBrush"] = "#168FE0", ["PrimaryHoverBrush"] = "#31A6EF",
+        ["AccentSoftBrush"] = "#15364A", ["FocusBrush"] = "#56D7F4", ["SuccessBrush"] = "#43D5B3",
+        ["SuccessSurfaceBrush"] = "#123A34", ["DangerBrush"] = "#FF9AA4", ["DangerSurfaceBrush"] = "#47262C",
+        ["WarningBrush"] = "#F1CF72", ["WarningSurfaceBrush"] = "#41371D"
     };
 }

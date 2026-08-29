@@ -35,4 +35,4 @@ The user signs in to ChatGPT normally in Chrome, installs the DeskBridge extensi
 
 ## Brand and experience
 
-DeskBridge is calm, direct, and security-conscious. The UI is a native dark-capable Windows operations panel with readable status, clear scope, keyboard focus, non-color state labels, cancellation, and honest failure guidance.
+DeskBridge is calm, direct, and security-conscious. Its visual identity turns the workflow into a compact bridge: source file, verification checkpoint, then accepted output. Graphite surfaces, electric blue actions, cyan checkpoints, and restrained teal success states create a recognizable Windows operations panel without copying generic automation-console symbols. The app and extension share the same icon, color tokens, readable status, clear scope, keyboard focus, non-color state labels, cancellation, and honest failure guidance.

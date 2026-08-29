@@ -1,25 +1,25 @@
 .deskbridge-code { position: relative; padding-bottom: 3.25rem !important; }
 .deskbridge-toolbar { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; position: absolute; left: .75rem; right: .75rem; bottom: .6rem; z-index: 2; font: 600 12px/1.2 system-ui, sans-serif; }
 .deskbridge-save-toolbar { left: auto; }
-.deskbridge-button { border: 1px solid #b9c1c9; border-radius: 8px; background: #fff; color: #18212a; padding: .46rem .72rem; cursor: pointer; box-shadow: 0 2px 8px rgb(20 32 45 / 10%); }
-.deskbridge-button:hover { background: #f2f5f7; }
-.deskbridge-button:focus-visible { outline: 3px solid #70a8df; outline-offset: 2px; }
+.deskbridge-button { border: 1px solid #aebccb; border-radius: 10px; background: #fff; color: #142033; padding: .5rem .78rem; cursor: pointer; box-shadow: 0 3px 10px rgb(20 32 51 / 12%); }
+.deskbridge-button:hover { background: #eaf1f8; }
+.deskbridge-button:focus-visible { outline: 3px solid #4cc9f0; outline-offset: 2px; }
 .deskbridge-button:disabled { cursor: wait; opacity: .58; }
-.deskbridge-primary { border-color: #1262a3; background: #1262a3; color: #fff; }
-.deskbridge-primary:hover { background: #0d4f86; }
-.deskbridge-result { flex: 1 1 100%; max-height: 15rem; overflow: auto; white-space: pre-wrap; border-radius: 8px; padding: .65rem; background: #edf3f7; color: #17212a; font: 12px/1.45 ui-monospace, Consolas, monospace; }
-.deskbridge-result[data-state="success"] { background: #e4f4ed; color: #155d47; }
-.deskbridge-result[data-state="error"] { background: #fbe8e7; color: #8a2926; }
+.deskbridge-primary { border-color: #147dcc; background: #147dcc; color: #fff; }
+.deskbridge-primary:hover { background: #0b68b0; }
+.deskbridge-result { flex: 1 1 100%; max-height: 15rem; overflow: auto; white-space: pre-wrap; border-radius: 10px; padding: .7rem; background: #eef5fb; color: #142033; font: 12px/1.45 ui-monospace, Consolas, monospace; }
+.deskbridge-result[data-state="success"] { background: #d9f4ec; color: #076655; }
+.deskbridge-result[data-state="error"] { background: #fce5e7; color: #a33a43; }
 .deskbridge-image-wrap { position: relative; }
 .deskbridge-image-button { position: absolute; right: .75rem; bottom: .75rem; opacity: .92; }
 @media (prefers-reduced-motion: no-preference) { .deskbridge-button { transition: background-color 120ms ease-out, box-shadow 120ms ease-out; } }
-.deskbridge-agent-strip { position: fixed; top: .85rem; left: 50%; z-index: 2147483647; display: flex; align-items: center; gap: .7rem; width: min(42rem, calc(100vw - 2rem)); padding: .72rem .9rem; transform: translateX(-50%); border: 1px solid rgb(255 255 255 / 13%); border-radius: 14px; background: rgb(23 25 28 / 94%); color: #f4f5f6; box-shadow: 0 12px 40px rgb(0 0 0 / 32%); backdrop-filter: blur(16px); font: 500 13px/1.35 system-ui, sans-serif; }
+.deskbridge-agent-strip { position: fixed; top: .85rem; left: 50%; z-index: 2147483647; display: flex; align-items: center; gap: .7rem; width: min(42rem, calc(100vw - 2rem)); padding: .72rem .9rem; transform: translateX(-50%); border: 1px solid #314153; border-radius: 14px; background: rgb(13 17 24 / 95%); color: #f1f6fc; box-shadow: 0 14px 42px rgb(0 0 0 / 34%); backdrop-filter: blur(14px); font: 500 13px/1.35 system-ui, sans-serif; }
 .deskbridge-agent-strip > span:last-child { display: grid; min-width: 0; }
 .deskbridge-agent-strip strong { font-size: 13px; letter-spacing: .01em; }
-.deskbridge-agent-strip small { overflow: hidden; color: #b9bec7; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-.deskbridge-agent-mark { width: .7rem; height: .7rem; flex: 0 0 auto; border-radius: 999px; background: #7bd8b0; box-shadow: 0 0 0 5px rgb(123 216 176 / 12%); }
-.deskbridge-agent-strip[data-state="error"] .deskbridge-agent-mark { background: #ff8b83; box-shadow: 0 0 0 5px rgb(255 139 131 / 12%); }
-.deskbridge-agent-strip[data-state="success"] .deskbridge-agent-mark { background: #65dfa9; }
-@media (prefers-color-scheme: light) { .deskbridge-agent-strip { border-color: #d9dee5; background: rgb(255 255 255 / 96%); color: #18212a; box-shadow: 0 12px 36px rgb(20 32 45 / 15%); } .deskbridge-agent-strip small { color: #586270; } }
+.deskbridge-agent-strip small { overflow: hidden; color: #a8b5c5; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.deskbridge-agent-mark { width: .72rem; height: .72rem; flex: 0 0 auto; border: 2px solid #0d1118; border-radius: 999px; background: #56d7f4; box-shadow: 0 0 0 4px rgb(86 215 244 / 18%); }
+.deskbridge-agent-strip[data-state="error"] .deskbridge-agent-mark { background: #ff9aa4; box-shadow: 0 0 0 4px rgb(255 154 164 / 16%); }
+.deskbridge-agent-strip[data-state="success"] .deskbridge-agent-mark { background: #43d5b3; box-shadow: 0 0 0 4px rgb(67 213 179 / 16%); }
+@media (prefers-color-scheme: light) { .deskbridge-agent-strip { border-color: #d8e0ea; background: rgb(255 255 255 / 97%); color: #142033; box-shadow: 0 12px 36px rgb(20 32 51 / 16%); } .deskbridge-agent-strip small { color: #5b687b; } .deskbridge-agent-mark { border-color: #fff; } }
 @media (prefers-reduced-motion: no-preference) { .deskbridge-agent-strip[data-state="working"] .deskbridge-agent-mark { animation: deskbridge-pulse 1.8s ease-in-out infinite; } }
 @keyframes deskbridge-pulse { 50% { opacity: .5; transform: scale(.82); } }

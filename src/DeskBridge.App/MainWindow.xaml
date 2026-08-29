@@ -1,84 +1,118 @@
 <Window x:Class="DeskBridge.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="DeskBridge" Width="1100" Height="760" MinWidth="860" MinHeight="600"
+        Title="DeskBridge" Icon="Assets/app-icon.ico"
+        Width="1160" Height="800" MinWidth="900" MinHeight="640"
         WindowStartupLocation="CenterScreen">
     <Grid Background="{DynamicResource CanvasBrush}">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-        <Border Background="{DynamicResource HeaderBrush}" Padding="28,20">
+
+        <Border Background="{DynamicResource HeaderBrush}" Padding="26,16">
             <Grid>
-                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <StackPanel><TextBlock Text="DeskBridge" Foreground="{DynamicResource HeaderInkBrush}" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="A local file agent with evidence-backed review" Foreground="{DynamicResource HeaderMutedBrush}" Margin="0,4,0,0"/></StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"><Ellipse Width="10" Height="10" Fill="{DynamicResource SuccessBrush}" Margin="0,0,8,0"/><TextBlock Text="Control panel ready" Foreground="{DynamicResource HeaderInkBrush}" FontWeight="SemiBold"/></StackPanel>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Width="48" Height="48" CornerRadius="12" ClipToBounds="True" Background="#111B28">
+                    <Image Source="Assets/app-icon.png" Stretch="UniformToFill"/>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="14,2,0,0">
+                    <TextBlock Text="DeskBridge" Foreground="{DynamicResource HeaderInkBrush}" FontSize="24" FontWeight="SemiBold"/>
+                    <TextBlock Text="Local verification for ChatGPT Web file work" Foreground="{DynamicResource HeaderMutedBrush}" Margin="0,2,0,0"/>
+                </StackPanel>
+                <Border Grid.Column="2" Background="#163A35" BorderBrush="#2A6B61" BorderThickness="1" CornerRadius="14" Padding="12,7" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}" Margin="0,0,8,0"/><TextBlock Text="Control panel ready" Foreground="#DDFCF4" FontWeight="SemiBold"/></StackPanel>
+                </Border>
             </Grid>
         </Border>
-        <TabControl Grid.Row="1" Margin="24,20,24,12" BorderThickness="0">
+
+        <TabControl Grid.Row="1" Margin="24,14,24,10">
             <TabItem Header="Agent">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <Grid Margin="6,20" MaxWidth="920" HorizontalAlignment="Left">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="24"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="Give DeskBridge a finished-file task" FontSize="22" FontWeight="SemiBold"/>
-                            <TextBlock Text="DeskBridge opens a dedicated ChatGPT Web tab, verifies GPT-5.6 Sol at High 3/3, uploads this file through the signed-in page, and inspects every downloaded candidate locally. It never switches to Codex, a Codex workspace, or the API." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,6,0,20"/>
-                            <TextBlock Text="1  Source file" FontWeight="SemiBold"/>
-                            <Grid Margin="0,7,0,18"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBox Text="{Binding AgentSourcePath, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" MinHeight="40" VerticalContentAlignment="Center"/><Button Grid.Column="1" Content="Choose file" Margin="8,0,0,0" Click="ChooseAgentFile_Click"/></Grid>
-                            <TextBlock Text="2  What should the finished file be like?" FontWeight="SemiBold"/>
-                            <TextBox Text="{Binding AgentRequest, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="150" MaxHeight="260" VerticalScrollBarVisibility="Auto" Margin="0,7,0,18" AutomationProperties.Name="Agent request"/>
-                            <Grid Margin="0,0,0,18"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="16"/><ColumnDefinition/><ColumnDefinition Width="16"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                <StackPanel><TextBlock Text="Web model · fixed" FontSize="12" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding AgentModel}" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel>
-                                <StackPanel Grid.Column="2"><TextBlock Text="Reasoning · fixed" FontSize="12" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding AgentReasoning}" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel>
-                                <StackPanel Grid.Column="4"><TextBlock Text="Max passes" FontSize="12" Foreground="{DynamicResource MutedBrush}"/><ComboBox ItemsSource="{Binding AgentIterationOptions}" SelectedItem="{Binding AgentIterations}" Margin="0,5,0,0"/></StackPanel>
-                            </Grid>
-                            <StackPanel Orientation="Horizontal"><Button Content="Start in ChatGPT Web · uploads file" Style="{StaticResource PrimaryButton}" IsEnabled="{Binding CanStartAgent}" Click="StartAgent_Click"/><Button Content="Cancel" Margin="8,0,0,0" IsEnabled="{Binding IsAgentRunning}" Click="CancelAgent_Click"/><Button Content="Open result" Margin="8,0,0,0" IsEnabled="{Binding HasAgentResult}" Click="OpenAgentResult_Click"/></StackPanel>
-                            <TextBlock Text="Requires Chrome, the DeskBridge extension, a signed-in ChatGPT Web tab, a local folder, a source file, and a clear request. If Sol High cannot be verified, the run stops without sending." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,9,0,0"/>
+                    <Grid Margin="4,12,4,8" MaxWidth="1060" HorizontalAlignment="Center">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <StackPanel Margin="2,0,0,12">
+                            <TextBlock Text="Turn a request into a verified file" FontSize="25" FontWeight="SemiBold"/>
+                            <TextBlock Text="DeskBridge stays on ChatGPT Web, checks every downloaded candidate locally, and keeps the original untouched. No Codex workspace and no API fallback." Foreground="{DynamicResource MutedBrush}" FontSize="14" Margin="0,6,0,0" MaxWidth="820" HorizontalAlignment="Left"/>
                         </StackPanel>
-                        <StackPanel Grid.Column="2">
-                            <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
-                                <StackPanel><TextBlock Text="{Binding AgentStatus}" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="{Binding AgentStatusDetail}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,7,0,12"/><Button Content="Open run evidence" HorizontalAlignment="Left" IsEnabled="{Binding HasAgentRun}" Click="OpenAgentRun_Click"/></StackPanel>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+
+                            <Border Style="{StaticResource PanelCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentSoftBrush}"><TextBlock Text="1" Foreground="{DynamicResource PrimaryBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <TextBlock Text="Choose the source file" FontSize="17" FontWeight="SemiBold" Margin="10,3,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Text="The file must be inside your selected workspace." Foreground="{DynamicResource MutedBrush}" Margin="38,0,0,9"/>
+                                    <Grid Margin="38,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBox Text="{Binding AgentSourcePath, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" MinHeight="42" VerticalContentAlignment="Center"/><Button Grid.Column="1" Content="Choose file" Margin="8,0,0,0" Click="ChooseAgentFile_Click"/></Grid>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentSoftBrush}"><TextBlock Text="2" Foreground="{DynamicResource PrimaryBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <TextBlock Text="Describe the finished result" FontSize="17" FontWeight="SemiBold" Margin="10,3,0,0"/>
+                                    </StackPanel>
+                                    <TextBox Text="{Binding AgentRequest, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="104" MaxHeight="170" VerticalScrollBarVisibility="Auto" Margin="38,0,0,12" AutomationProperties.Name="Agent request"/>
+
+                                    <Border Background="{DynamicResource PanelRaisedBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="11" Padding="10" Margin="38,0,0,12">
+                                        <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                            <StackPanel><TextBlock Text="Web model" FontSize="11" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding AgentModel}" FontWeight="SemiBold" Margin="0,5,0,0"/></StackPanel>
+                                            <StackPanel Grid.Column="1"><TextBlock Text="Reasoning" FontSize="11" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding AgentReasoning}" FontWeight="SemiBold" Margin="0,5,0,0"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock Text="Maximum passes" FontSize="11" Foreground="{DynamicResource MutedBrush}"/><ComboBox ItemsSource="{Binding AgentIterationOptions}" SelectedItem="{Binding AgentIterations}" Margin="0,4,0,0"/></StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <WrapPanel Margin="38,0,0,0"><Button Content="Start in ChatGPT Web" Style="{StaticResource PrimaryButton}" IsEnabled="{Binding CanStartAgent}" Click="StartAgent_Click"/><Button Content="Cancel" Margin="8,0,0,0" IsEnabled="{Binding IsAgentRunning}" Click="CancelAgent_Click"/><Button Content="Open result" Style="{StaticResource QuietButton}" Margin="8,0,0,0" IsEnabled="{Binding HasAgentResult}" Click="OpenAgentResult_Click"/></WrapPanel>
+                                    <TextBlock Text="Requires Chrome, the DeskBridge extension, a signed-in ChatGPT Web account, a workspace, a source file, and a clear request. If Sol High cannot be verified, nothing is sent." Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="38,9,0,0"/>
+                                </StackPanel>
                             </Border>
-                            <TextBlock Text="Run timeline" FontWeight="SemiBold" Margin="0,20,0,9"/>
-                            <ListView ItemsSource="{Binding AgentSteps}" MinHeight="260" MaxHeight="390" BorderBrush="{DynamicResource LineBrush}">
-                                <ListView.ItemTemplate><DataTemplate><StackPanel Margin="6"><StackPanel Orientation="Horizontal"><TextBlock Text="{Binding Time}" Foreground="{DynamicResource MutedBrush}" FontSize="11"/><TextBlock Text="{Binding Stage}" FontWeight="SemiBold" Margin="8,0,0,0"/></StackPanel><TextBlock Text="{Binding Message}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0"/></StackPanel></DataTemplate></ListView.ItemTemplate>
-                            </ListView>
-                        </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <Border Style="{StaticResource PanelCard}" Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <TextBlock Text="Current run" FontSize="11" Foreground="{DynamicResource MutedBrush}"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0"><Ellipse Width="10" Height="10" Fill="{DynamicResource SuccessBrush}" Margin="0,5,9,0" VerticalAlignment="Top"/><TextBlock Text="{Binding AgentStatus}" FontSize="19" FontWeight="SemiBold"/></StackPanel>
+                                        <TextBlock Text="{Binding AgentStatusDetail}" Foreground="{DynamicResource MutedBrush}" Margin="19,6,0,14"/>
+                                        <Button Content="Open run evidence" Style="{StaticResource QuietButton}" HorizontalAlignment="Left" IsEnabled="{Binding HasAgentRun}" Click="OpenAgentRun_Click"/>
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="Run timeline" FontSize="16" FontWeight="SemiBold" Margin="2,0,0,8"/>
+                                <ListView ItemsSource="{Binding AgentSteps}" MinHeight="220" MaxHeight="330" BorderBrush="{DynamicResource LineBrush}">
+                                    <ListView.ItemTemplate><DataTemplate><StackPanel Margin="7,6"><StackPanel Orientation="Horizontal"><TextBlock Text="{Binding Time}" Foreground="{DynamicResource MutedBrush}" FontSize="11"/><TextBlock Text="{Binding Stage}" FontWeight="SemiBold" Margin="8,0,0,0"/></StackPanel><TextBlock Text="{Binding Message}" Foreground="{DynamicResource MutedBrush}" FontSize="12" Margin="0,3,0,0"/></StackPanel></DataTemplate></ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </ScrollViewer>
             </TabItem>
+
             <TabItem Header="Workspace">
-                <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="6,22"><TextBlock Text="Current workspace" FontSize="13" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding Workspace}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,5,0,14"/><StackPanel Orientation="Horizontal"><Button Content="Choose workspace" Style="{StaticResource PrimaryButton}" Click="ChooseWorkspace_Click"/><Button Content="Open folder" Margin="8,0,0,0" IsEnabled="{Binding HasWorkspace}" Click="OpenWorkspace_Click"/></StackPanel><Separator Margin="0,28,0,22"/><TextBlock Text="How actions run" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="ChatGPT action blocks never run automatically. The native host validates the action, permission, workspace boundary, and action-specific arguments before execution." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" MaxWidth="720" HorizontalAlignment="Left" Margin="0,8,0,0"/></StackPanel></ScrollViewer>
+                <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="4,20" MaxWidth="920" HorizontalAlignment="Center">
+                    <Border Style="{StaticResource PanelCard}"><StackPanel><TextBlock Text="Current workspace" FontSize="12" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding Workspace}" FontSize="21" FontWeight="SemiBold" Margin="0,6,0,16"/><WrapPanel><Button Content="Choose workspace" Style="{StaticResource PrimaryButton}" Click="ChooseWorkspace_Click"/><Button Content="Open folder" Style="{StaticResource QuietButton}" Margin="8,0,0,0" IsEnabled="{Binding HasWorkspace}" Click="OpenWorkspace_Click"/></WrapPanel></StackPanel></Border>
+                    <Border Style="{StaticResource PanelCard}" Margin="0,16,0,0"><StackPanel><TextBlock Text="How protected actions run" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="ChatGPT action blocks never run automatically. The native host validates the action, permission, workspace boundary, and action-specific arguments before execution." Foreground="{DynamicResource MutedBrush}" FontSize="14" Margin="0,8,0,0" MaxWidth="760" HorizontalAlignment="Left"/></StackPanel></Border>
+                </StackPanel></ScrollViewer>
             </TabItem>
+
             <TabItem Header="Activity">
-                <Grid Margin="6,18"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><DockPanel Margin="0,0,0,12"><TextBlock Text="Recent activity" FontSize="20" FontWeight="SemiBold" DockPanel.Dock="Left"/><Button Content="Refresh" HorizontalAlignment="Right" Click="Refresh_Click"/></DockPanel><ListView Grid.Row="1" ItemsSource="{Binding Activities}" BorderBrush="{DynamicResource LineBrush}"><ListView.View><GridView><GridViewColumn Header="Time" Width="170" DisplayMemberBinding="{Binding Timestamp}"/><GridViewColumn Header="Action" Width="160" DisplayMemberBinding="{Binding Action}"/><GridViewColumn Header="Target" Width="430" DisplayMemberBinding="{Binding Target}"/><GridViewColumn Header="Result" Width="130" DisplayMemberBinding="{Binding Result}"/><GridViewColumn Header="ms" Width="70" DisplayMemberBinding="{Binding DurationMs}"/></GridView></ListView.View></ListView></Grid>
+                <Grid Margin="4,18"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><DockPanel Margin="0,0,0,12"><StackPanel DockPanel.Dock="Left"><TextBlock Text="Recent activity" FontSize="21" FontWeight="SemiBold"/><TextBlock Text="Local actions and verification results" Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0"/></StackPanel><Button Content="Refresh" HorizontalAlignment="Right" VerticalAlignment="Center" Click="Refresh_Click"/></DockPanel><ListView Grid.Row="1" ItemsSource="{Binding Activities}"><ListView.View><GridView><GridViewColumn Header="Time" Width="170" DisplayMemberBinding="{Binding Timestamp}"/><GridViewColumn Header="Action" Width="160" DisplayMemberBinding="{Binding Action}"/><GridViewColumn Header="Target" Width="440" DisplayMemberBinding="{Binding Target}"/><GridViewColumn Header="Result" Width="130" DisplayMemberBinding="{Binding Result}"/><GridViewColumn Header="ms" Width="70" DisplayMemberBinding="{Binding DurationMs}"/></GridView></ListView.View></ListView>
+                </Grid>
             </TabItem>
+
             <TabItem Header="Assets">
-                <Grid Margin="6,18"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><StackPanel Margin="0,0,0,12"><TextBlock Text="Workspace assets" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Images found below folders named assets. DeskBridge does not edit them here." Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0"/></StackPanel><ListView Grid.Row="1" ItemsSource="{Binding Assets}" BorderBrush="{DynamicResource LineBrush}"><ListView.View><GridView><GridViewColumn Header="File" Width="250" DisplayMemberBinding="{Binding Name}"/><GridViewColumn Header="Dimensions" Width="150" DisplayMemberBinding="{Binding Dimensions}"/><GridViewColumn Header="Size" Width="100" DisplayMemberBinding="{Binding Size}"/><GridViewColumn Header="Path" Width="500" DisplayMemberBinding="{Binding Path}"/></GridView></ListView.View></ListView></Grid>
+                <Grid Margin="4,18"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><StackPanel Margin="0,0,0,12"><TextBlock Text="Workspace assets" FontSize="21" FontWeight="SemiBold"/><TextBlock Text="Images found below folders named assets. DeskBridge inspects but does not edit them here." Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0"/></StackPanel><ListView Grid.Row="1" ItemsSource="{Binding Assets}"><ListView.View><GridView><GridViewColumn Header="File" Width="250" DisplayMemberBinding="{Binding Name}"/><GridViewColumn Header="Dimensions" Width="150" DisplayMemberBinding="{Binding Dimensions}"/><GridViewColumn Header="Size" Width="100" DisplayMemberBinding="{Binding Size}"/><GridViewColumn Header="Path" Width="520" DisplayMemberBinding="{Binding Path}"/></GridView></ListView.View></ListView></Grid>
             </TabItem>
+
             <TabItem Header="Settings">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="6,20" MaxWidth="860" HorizontalAlignment="Left">
-                        <TextBlock Text="ChatGPT Web transport" FontSize="20" FontWeight="SemiBold"/>
-                        <TextBlock Text="Browser-only is locked on. DeskBridge uses the signed-in ChatGPT Web page through its Chrome extension and refuses to fall back to Codex, a Codex workspace, or the Platform API. No API key is stored or requested." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,5,0,8"/>
-                        <TextBlock Text="{Binding AgentTransport}" FontWeight="SemiBold" Margin="0,0,0,28"/>
-                        <TextBlock Text="Appearance" FontSize="20" FontWeight="SemiBold"/>
-                        <TextBlock Text="Follow Windows automatically or keep a fixed light or dark appearance." Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,12"/>
-                        <Grid Margin="0,0,0,26"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Color theme" FontWeight="SemiBold" VerticalAlignment="Center"/><ComboBox Grid.Column="1" ItemsSource="{Binding ThemeModes}" SelectedItem="{Binding SelectedTheme, Mode=TwoWay}" SelectionChanged="Theme_SelectionChanged" AutomationProperties.Name="Color theme"/></Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="4,20" MaxWidth="920" HorizontalAlignment="Center">
+                    <Border Style="{StaticResource PanelCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Margin="0,0,28,0"><TextBlock Text="ChatGPT Web transport" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Browser-only is locked on. DeskBridge refuses Codex, Codex workspace, and Platform API fallback. No API key is requested or stored." Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,0"/><TextBlock Text="{Binding AgentTransport}" Foreground="{DynamicResource SuccessBrush}" FontWeight="SemiBold" Margin="0,10,0,0"/></StackPanel><StackPanel Grid.Column="1"><TextBlock Text="Appearance" FontWeight="SemiBold" Margin="0,0,0,6"/><ComboBox ItemsSource="{Binding ThemeModes}" SelectedItem="{Binding SelectedTheme, Mode=TwoWay}" SelectionChanged="Theme_SelectionChanged" AutomationProperties.Name="Color theme"/></StackPanel></Grid></Border>
 
-                        <TextBlock Text="Skill integrations" FontSize="20" FontWeight="SemiBold"/>
-                        <TextBlock Text="Executable adapters perform a bounded local action. Guidance profiles provide instructions for ChatGPT; they do not run a local AI model." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,5,0,10"/>
-                        <ItemsControl ItemsSource="{Binding SkillIntegrations}">
-                            <ItemsControl.ItemTemplate><DataTemplate><Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,14"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Margin="0,0,24,0"><StackPanel Orientation="Horizontal"><TextBlock Text="{Binding Name}" FontWeight="SemiBold"/><Border Background="{DynamicResource ControlHoverBrush}" CornerRadius="10" Padding="8,2" Margin="9,0,0,0"><TextBlock Text="{Binding Kind}" Foreground="{DynamicResource MutedBrush}" FontSize="11"/></Border></StackPanel><TextBlock Text="{Binding Description}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,5,0,0"/><Button Content="Copy instruction" HorizontalAlignment="Left" Margin="0,9,0,0" Padding="10,5" MinHeight="30" Click="CopySkillInstruction_Click"/></StackPanel><CheckBox Grid.Column="1" Content="Enabled" IsChecked="{Binding Enabled, Mode=TwoWay}" Checked="Skill_CheckedChanged" Unchecked="Skill_CheckedChanged" AutomationProperties.Name="{Binding Name}"/></Grid></Border></DataTemplate></ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                    <Border Style="{StaticResource PanelCard}" Margin="0,16,0,0"><StackPanel><TextBlock Text="Skill integrations" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Executable adapters perform bounded local actions. Guidance profiles provide instructions for ChatGPT and do not run a local AI model." Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,10"/><ItemsControl ItemsSource="{Binding SkillIntegrations}"><ItemsControl.ItemTemplate><DataTemplate><Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,14"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Margin="0,0,24,0"><StackPanel Orientation="Horizontal"><TextBlock Text="{Binding Name}" FontWeight="SemiBold"/><Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="9" Padding="8,2" Margin="9,0,0,0"><TextBlock Text="{Binding Kind}" Foreground="{DynamicResource PrimaryBrush}" FontSize="11"/></Border></StackPanel><TextBlock Text="{Binding Description}" Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,0"/><Button Content="Copy instruction" Style="{StaticResource QuietButton}" HorizontalAlignment="Left" Margin="0,9,0,0" Padding="10,5" MinHeight="30" Click="CopySkillInstruction_Click"/></StackPanel><CheckBox Grid.Column="1" Content="Enabled" IsChecked="{Binding Enabled, Mode=TwoWay}" Checked="Skill_CheckedChanged" Unchecked="Skill_CheckedChanged" AutomationProperties.Name="{Binding Name}"/></Grid></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel></Border>
 
-                        <Separator Margin="0,26,0,22"/>
-                        <TextBlock Text="Permissions" FontSize="20" FontWeight="SemiBold"/>
-                        <TextBlock Text="Ask is recommended for actions with side effects. There is no allow-everything setting." Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,15"/>
-                        <ItemsControl ItemsSource="{Binding Permissions}"><ItemsControl.ItemTemplate><DataTemplate><Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,14"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{Binding Label}" FontWeight="SemiBold"/><TextBlock Text="{Binding Description}" Foreground="{DynamicResource MutedBrush}" Margin="0,3,20,0" TextWrapping="Wrap"/></StackPanel><ComboBox Grid.Column="1" ItemsSource="{Binding DataContext.Policies, RelativeSource={RelativeSource AncestorType=Window}}" SelectedItem="{Binding Policy, Mode=TwoWay}" SelectionChanged="Permission_SelectionChanged"/></Grid></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-                        <Separator Margin="0,24"/>
-                        <TextBlock Text="Logs" FontSize="20" FontWeight="SemiBold"/><StackPanel Orientation="Horizontal" Margin="0,12,0,0"><Button Content="Open logs" Click="OpenLogs_Click"/><Button Content="Clear logs" Margin="8,0,0,0" Click="ClearLogs_Click"/></StackPanel>
-                    </StackPanel>
-                </ScrollViewer>
+                    <Border Style="{StaticResource PanelCard}" Margin="0,16,0,0"><StackPanel><TextBlock Text="Permissions" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Ask is recommended for actions with side effects. There is no allow-everything setting." Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,10"/><ItemsControl ItemsSource="{Binding Permissions}"><ItemsControl.ItemTemplate><DataTemplate><Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,14"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{Binding Label}" FontWeight="SemiBold"/><TextBlock Text="{Binding Description}" Foreground="{DynamicResource MutedBrush}" Margin="0,3,20,0"/></StackPanel><ComboBox Grid.Column="1" ItemsSource="{Binding DataContext.Policies, RelativeSource={RelativeSource AncestorType=Window}}" SelectedItem="{Binding Policy, Mode=TwoWay}" SelectionChanged="Permission_SelectionChanged"/></Grid></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel></Border>
+
+                    <Border Style="{StaticResource PanelCard}" Margin="0,16,0,0"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Local logs" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Review timestamps, actions, targets, results, and duration." Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0"/></StackPanel><WrapPanel Grid.Column="1" VerticalAlignment="Center"><Button Content="Open logs" Click="OpenLogs_Click"/><Button Content="Clear logs" Style="{StaticResource QuietButton}" Margin="8,0,0,0" Click="ClearLogs_Click"/></WrapPanel></Grid></Border>
+                </StackPanel></ScrollViewer>
             </TabItem>
         </TabControl>
-        <Border Grid.Row="2" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="24,12"><TextBlock Foreground="{DynamicResource MutedBrush}" Text="Native host: com.deskbridge.host  •  Production transport: Chrome Native Messaging  •  No local HTTP listener"/></Border>
+
+        <Border Grid.Row="2" Background="{DynamicResource PanelRaisedBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="24,11">
+            <Grid><TextBlock Foreground="{DynamicResource MutedBrush}" Text="Native host: com.deskbridge.host  •  Chrome Native Messaging  •  No local HTTP listener"/><TextBlock HorizontalAlignment="Right" Foreground="{DynamicResource MutedBrush}" Text="Web-only boundary locked"/></Grid>
+        </Border>
     </Grid>
 </Window>

@@ -65,7 +65,7 @@ The generated manifest contains the local absolute host path and is written to `
 
 ## Install the Windows release
 
-1. Download and extract `DeskBridge-v1.0.0-win-x64.zip` to a stable folder.
+1. Download and extract `DeskBridge-v1.1.0-win-x64.zip` to a stable folder.
 2. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted `extension` folder.
 3. Double-click `Install-DeskBridge.cmd`. It registers the fixed extension ID and opens the app.
 
@@ -100,7 +100,7 @@ Ask ChatGPT to output an action in a fenced `deskbridge` block:
 
 The content script adds **Run with DeskBridge**. Nothing runs until you click. The extension validates the envelope, the service worker sends it to `com.deskbridge.host`, and the native registry applies permission, workspace, and action validation before execution. A success or stable error code appears below the block and can be copied.
 
-Normal code blocks get **Save file**, which asks for an explicit absolute path inside the current workspace. ChatGPT images may get **Save to DeskBridge** when they expose a public/signed HTTPS URL; the button downloads through the SSRF-protected asset action. If the image URL requires ChatGPT authentication, download it normally and use `import_asset`—DeskBridge will not copy auth tokens or cookies.
+Normal code blocks get **Save file**, which asks for an explicit absolute path inside the current workspace. ChatGPT images may get **Save to DeskBridge** when they expose a public/signed HTTPS URL; the button downloads through the SSRF-protected asset action. If the image URL requires ChatGPT authentication, download it normally and use `import_asset` - DeskBridge will not copy auth tokens or cookies.
 
 ## Supported actions
 
@@ -125,7 +125,7 @@ The Settings tab offers **System**, **Light**, and **Dark** appearance modes. Sy
 
 Skill integrations are deliberately typed:
 
-- **Convert documents to Markdown** is an executable adapter. Enable it in Settings, leave its permission on Ask, and use `convert_document_to_markdown` with source and `.md` destination paths inside the selected workspace. DeskBridge invokes `@firecrawl/anydoc` through a known npm runner—never an arbitrary shell command. The first run may download the converter package. Hosted OCR is disabled, so an OCR-only document returns `DOCUMENT_OCR_REQUIRED` instead of uploading the file.
+- **Convert documents to Markdown** is an executable adapter. Enable it in Settings, leave its permission on Ask, and use `convert_document_to_markdown` with source and `.md` destination paths inside the selected workspace. DeskBridge invokes `@firecrawl/anydoc` through a known npm runner - never an arbitrary shell command. The first run may download the converter package. Hosted OCR is disabled, so an OCR-only document returns `DOCUMENT_OCR_REQUIRED` instead of uploading the file.
 - **Impeccable** is a guidance profile. Enabling it exposes a reusable UI-quality instruction through `get_skill_profile`, and **Copy instruction** places that text on the clipboard. DeskBridge contains no local LLM and does not claim to execute the Codex skill itself.
 
 The converter uses the bundled Codex Node runtime when available, otherwise `npx.cmd` from `PATH`. Set `DESKBRIDGE_NPX_PATH` to an explicit trusted `npx.cmd` if needed.
@@ -138,7 +138,7 @@ The converter uses the bundled Codex Node runtime when available, otherwise `npx
 - Commands use an executable whitelist and `ProcessStartInfo.ArgumentList`. PowerShell, pwsh, CMD, WSH, unknown executables, destructive Git subcommands, and force flags are blocked. Timeout terminates the process tree.
 - Downloads accept HTTPS only, manually validate every redirect, pin connections to DNS addresses already checked as public, limit payloads to 20 MB, and require MIME/magic-byte agreement.
 - Native Messaging uses stdin/stdout only. DeskBridge does not bind `0.0.0.0`, `127.0.0.1`, or any other listening socket in production.
-- Logs contain timestamp, action, target, result, and duration only—never file/clipboard content, screenshot bytes, browser credentials, or tokens. Web-agent evidence contains the request, local paths, inspection metadata, hashes, and candidate files.
+- Logs contain timestamp, action, target, result, and duration only - never file/clipboard content, screenshot bytes, browser credentials, or tokens. Web-agent evidence contains the request, local paths, inspection metadata, hashes, and candidate files.
 
 See [security.md](docs/security.md) for the threat model and honest interpreter limitation.
 
