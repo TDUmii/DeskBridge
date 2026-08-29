@@ -10,6 +10,7 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($HostPath)) {
     $candidates = @(
+        (Join-Path $repositoryRoot 'DeskBridge.Host.exe'),
         (Join-Path $repositoryRoot 'artifacts\DeskBridge-win-x64\DeskBridge.Host.exe'),
         (Join-Path $repositoryRoot 'src\DeskBridge.Host\bin\Release\net8.0-windows\DeskBridge.Host.exe'),
         (Join-Path $repositoryRoot 'src\DeskBridge.Host\bin\Debug\net8.0-windows\DeskBridge.Host.exe')
@@ -17,7 +18,7 @@ if ([string]::IsNullOrWhiteSpace($HostPath)) {
     $HostPath = $candidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 }
 if ([string]::IsNullOrWhiteSpace($HostPath) -or -not (Test-Path -LiteralPath $HostPath -PathType Leaf)) {
-    throw 'DeskBridge.Host.exe was not found. Run scripts\build.ps1 or scripts\package.ps1 first.'
+    throw 'DeskBridge.Host.exe was not found beside the release package or in a build output.'
 }
 
 $resolvedHost = (Resolve-Path -LiteralPath $HostPath).Path

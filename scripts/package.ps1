@@ -36,6 +36,10 @@ Copy-Item -LiteralPath (Join-Path $repositoryRoot 'extension\dist') -Destination
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'README.md') -Destination $resolvedPackageRoot
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'LICENSE') -Destination $resolvedPackageRoot
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'THIRD_PARTY_NOTICES.md') -Destination $resolvedPackageRoot
+$releaseScripts = Join-Path $resolvedPackageRoot 'scripts'
+New-Item -ItemType Directory -Path $releaseScripts | Out-Null
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'scripts\install-native-host.ps1') -Destination $releaseScripts
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'scripts\uninstall-native-host.ps1') -Destination $releaseScripts
 
 foreach ($stage in @($hostStage, $appStage)) {
     if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
