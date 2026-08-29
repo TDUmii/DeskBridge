@@ -7,6 +7,7 @@ const dom = new ChatGptDomAdapter();
 const images = new ChatGptImageAdapter();
 const webAgent = new ChatGptWebAgentAdapter();
 let webAgentBusy = false;
+let webAgentPollTimer: number | null = null;
 
 interface CandidateResult {
   accepted: boolean;
@@ -201,10 +202,31 @@ async function pollWebAgent(): Promise<void> {
   }
 }
 
+function handleWebAgentPollError(error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error);
+  if (/extension context invalidated/i.test(message)) {
+    if (webAgentPollTimer !== null) {
+      window.clearInterval(webAgentPollTimer);
+      webAgentPollTimer = null;
+    }
+    webAgent.showStatus(
+      "DeskBridge extension updated",
+      "Reload this ChatGPT tab once to reconnect the refreshed extension.",
+      "error"
+    );
+    return;
+  }
+  webAgent.showStatus("DeskBridge stopped safely", message, "error");
+}
+
+function scheduleWebAgentPoll(): void {
+  void pollWebAgent().catch(handleWebAgentPollError);
+}
+
 new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
 scan();
 if (webAgent.isDedicatedAgentTab()) {
   webAgent.showStatus("DeskBridge · ChatGPT Web only", "Waiting for a local job. GPT-5.6 Sol · High is mandatory.");
-  void pollWebAgent();
-  window.setInterval(() => void pollWebAgent(), 2_000);
+  scheduleWebAgentPoll();
+  webAgentPollTimer = window.setInterval(scheduleWebAgentPoll, 2_000);
 }
