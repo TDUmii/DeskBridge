@@ -41,17 +41,17 @@ public partial class MainWindow : Window
     private async void Refresh_Click(object sender, RoutedEventArgs e) => await _viewModel.RefreshAsync();
     private async void Permission_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is ComboBox { DataContext: PermissionRow row } && IsLoaded) await _viewModel.SavePermissionAsync(row);
+        if (sender is ComboBox { DataContext: PermissionRow row } && IsLoaded && _viewModel.IsInitialized) await _viewModel.SavePermissionAsync(row);
     }
     private async void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is not ComboBox { SelectedItem: string mode } || !IsLoaded) return;
+        if (sender is not ComboBox { SelectedItem: string mode } || !IsLoaded || !_viewModel.IsInitialized) return;
         await _viewModel.SaveThemeAsync(mode);
         ((App)Application.Current).ThemeService.Apply(mode);
     }
     private async void Skill_CheckedChanged(object sender, RoutedEventArgs e)
     {
-        if (sender is CheckBox { DataContext: SkillIntegrationRow row } && IsLoaded)
+        if (sender is CheckBox { DataContext: SkillIntegrationRow row } && IsLoaded && _viewModel.IsInitialized)
             await _viewModel.SaveSkillIntegrationAsync(row);
     }
     private void CopySkillInstruction_Click(object sender, RoutedEventArgs e)
@@ -60,4 +60,25 @@ public partial class MainWindow : Window
     }
     private void OpenLogs_Click(object sender, RoutedEventArgs e) => MainViewModel.OpenLogs();
     private void ClearLogs_Click(object sender, RoutedEventArgs e) => _viewModel.ClearLogs();
+    private void ChooseAgentFile_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_viewModel.HasWorkspace) return;
+        var dialog = new OpenFileDialog { Title = "Choose a file inside the DeskBridge workspace", InitialDirectory = _viewModel.Workspace, CheckFileExists = true };
+        if (dialog.ShowDialog(this) == true) _viewModel.AgentSourcePath = dialog.FileName;
+    }
+    private async void StartAgent_Click(object sender, RoutedEventArgs e) => await _viewModel.StartAgentAsync();
+    private void CancelAgent_Click(object sender, RoutedEventArgs e) => _viewModel.CancelAgent();
+    private void OpenAgentResult_Click(object sender, RoutedEventArgs e) => _viewModel.OpenAgentResult();
+    private void OpenAgentRun_Click(object sender, RoutedEventArgs e) => _viewModel.OpenAgentRun();
+    private async void SaveApiKey_Click(object sender, RoutedEventArgs e)
+    {
+        try { await _viewModel.SaveApiKeyAsync(ApiKeyBox.Password); ApiKeyBox.Clear(); }
+        catch (Exception exception) { MessageBox.Show(this, exception.Message, "API key", MessageBoxButton.OK, MessageBoxImage.Warning); }
+    }
+    private async void TestApiKey_Click(object sender, RoutedEventArgs e)
+    {
+        try { await _viewModel.TestApiKeyAsync(); }
+        catch (Exception exception) { MessageBox.Show(this, exception.Message, "OpenAI connection", MessageBoxButton.OK, MessageBoxImage.Warning); }
+    }
+    private void RemoveApiKey_Click(object sender, RoutedEventArgs e) => _viewModel.RemoveApiKey();
 }

@@ -45,7 +45,13 @@ The downloader requires an allowed image MIME type and matching JPG/PNG/WebP/GIF
 
 ## Data minimization
 
-DeskBridge does not access ChatGPT cookies, tokens, internal APIs, credentials, browser profiles, or form submission. Screenshots remain in `%TEMP%\DeskBridge`. Activity logs contain metadata only. Native Messaging exposes no listening network port.
+DeskBridge does not access ChatGPT cookies, tokens, internal APIs, browser profiles, or form submission. The autonomous Agent uses only the user-supplied OpenAI Platform API key and public API. Screenshots remain in `%TEMP%\DeskBridge`. Activity logs contain metadata only. Native Messaging exposes no listening network port.
+
+## OpenAI Agent boundary
+
+Starting an Agent run is an explicit upload action. DeskBridge sends the selected source copy, request text, and bounded local tool results to OpenAI. Agent tools can read only the current run directory and its preserved source copy—not unrelated workspace files—and text reads are capped. The encrypted API key is added only to HTTPS authorization headers and is absent from settings, logs, prompts, evidence JSON, and results.
+
+All local agent writes are constrained to `.deskbridge/agent-runs/<run-id>`. The original remains unchanged. Generated files must be downloaded and inspected before selection; publishing requires score 90 or greater and an empty remaining-issues list. These checks reduce accidental regressions but do not turn model output into trusted code or guarantee subjective quality. Users should review executable or macro-capable output before opening it.
 
 ## Explicitly unsupported in V1
 

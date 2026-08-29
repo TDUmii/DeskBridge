@@ -1,8 +1,8 @@
 # DeskBridge
 
-DeskBridge is a Windows-first local companion for ChatGPT Web. It lets a user explicitly run structured file, project, asset, image, application, screenshot, clipboard, and development-tool actions inside one selected workspace.
+DeskBridge is a Windows-first local file agent and optional companion for ChatGPT Web. Its desktop Agent can take a normal request plus a workspace file, ask the official OpenAI Responses API to produce improved candidates, inspect the downloads locally, repeat within explicit safety budgets, and save the accepted result separately. Its Chrome bridge can also run explicit structured file, project, asset, image, application, screenshot, clipboard, and development-tool actions inside one selected workspace.
 
-DeskBridge contains no LLM. ChatGPT understands the request and writes code; DeskBridge validates the proposed action, asks permission, executes it locally, and returns a structured result through Chrome Native Messaging. It does not expose an HTTP API, automate the mouse or keyboard, or access ChatGPT cookies/tokens/private APIs.
+DeskBridge does not automate ChatGPT Web or use ChatGPT cookies, tokens, or private APIs. The Agent uses a user-supplied OpenAI Platform API key and the public Responses API; the legacy browser workflow remains an explicit, validated Chrome Native Messaging bridge. DeskBridge does not expose a local HTTP API or automate the mouse and keyboard.
 
 ## Requirements
 
@@ -47,21 +47,33 @@ DeskBridge/
    .\src\DeskBridge.App\bin\Release\net8.0-windows\DeskBridge.App.exe
    ```
 
-4. Choose the one folder DeskBridge may access. Keep the app running when an Ask policy should display a confirmation.
+4. Choose the one folder DeskBridge may access. To use the Agent, open Settings, save a Platform API key, return to Agent, choose a source file inside the workspace, describe the finished result, and click **Start agent · uploads file**. The original is retained; accepted output appears in `DeskBridge Results` inside the workspace.
 
-5. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select `DeskBridge\extension\dist`.
+5. The following Chrome steps are optional and only needed for the ChatGPT Web action-block workflow. Keep the app running when an Ask policy should display a confirmation.
 
-6. Copy the 32-character extension ID shown by Chrome, then register the native host for that exact origin.
+6. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select `DeskBridge\extension\dist`.
+
+7. Copy the 32-character extension ID shown by Chrome, then register the native host for that exact origin.
 
    ```powershell
    .\scripts\install-native-host.ps1 -ExtensionId abcdefghijklmnopabcdefghijklmnop
    ```
 
-7. Reload the extension. Its popup should show **Connected** and the selected workspace.
+8. Reload the extension. Its popup should show **Connected** and the selected workspace.
 
 The generated manifest contains the local absolute host path and is written to `%LOCALAPPDATA%\DeskBridge\native-host\com.deskbridge.host.json`; it is intentionally not committed.
 
 ## How it works
+
+### Autonomous file agent
+
+The Agent uploads only the source file selected in the UI and the written request. It uses a bounded Responses API function-tool loop plus Code Interpreter for binary artifacts. Candidate files are downloaded into `.deskbridge/agent-runs/<run-id>/versions`, inspected locally, and cannot overwrite the original. Completion requires an inspected candidate, a score of at least 90, and no declared remaining issue. A completed artifact is copied to `DeskBridge Results`; if a safety limit is reached, the best candidate and run evidence remain available for review.
+
+The default is `gpt-5.6-luna`, low reasoning, four passes, 24 tool calls, and 6,000 output tokens per pass. These are limits, not quality guarantees. API use is billed separately from a ChatGPT subscription. A live connection can be tested from Settings.
+
+The API key is encrypted with Windows DPAPI for the current Windows user under `%LOCALAPPDATA%\DeskBridge\secrets`. `OPENAI_API_KEY` can be used instead; environment configuration takes precedence. Keys are never written to `settings.json`, activity logs, run evidence, packages, or source control.
+
+### ChatGPT Web action blocks
 
 Ask ChatGPT to output an action in a fenced `deskbridge` block:
 
@@ -118,7 +130,7 @@ The converter uses the bundled Codex Node runtime when available, otherwise `npx
 - Commands use an executable whitelist and `ProcessStartInfo.ArgumentList`. PowerShell, pwsh, CMD, WSH, unknown executables, destructive Git subcommands, and force flags are blocked. Timeout terminates the process tree.
 - Downloads accept HTTPS only, manually validate every redirect, pin connections to DNS addresses already checked as public, limit payloads to 20 MB, and require MIME/magic-byte agreement.
 - Native Messaging uses stdin/stdout only. DeskBridge does not bind `0.0.0.0`, `127.0.0.1`, or any other listening socket in production.
-- Logs contain timestamp, action, target, result, and duration only—never file/clipboard content, screenshot bytes, secrets, or tokens.
+- Logs contain timestamp, action, target, result, and duration only—never file/clipboard content, screenshot bytes, secrets, or tokens. Agent run evidence contains the user request, paths, inspection metadata, usage, and candidate files, but never the API key.
 
 See [security.md](docs/security.md) for the threat model and honest interpreter limitation.
 
@@ -222,6 +234,7 @@ Install Node.js 20+ with npm, restart DeskBridge, and confirm `npx.cmd` is avail
 - Allowed interpreters can execute workspace code after confirmation; V1 is not an OS sandbox.
 - The extension is loaded unpacked and native host installation is a PowerShell step; there is no signed installer or Chrome Web Store distribution.
 - V1 captures only the primary monitor.
+- The Agent requires an OpenAI Platform API key and network access; a ChatGPT subscription alone does not provide API billing. Local inspection validates file structure and extractable content but cannot prove every subjective visual requirement.
 
 ## License
 

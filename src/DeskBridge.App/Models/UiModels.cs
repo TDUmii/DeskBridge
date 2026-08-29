@@ -20,6 +20,8 @@ public sealed class PermissionRow : INotifyPropertyChanged
 
 public sealed record AssetRow(string Name, string Dimensions, string Size, string Path);
 
+public sealed record AgentStepRow(string Time, string Stage, string Message, string? Detail);
+
 public sealed class SkillIntegrationRow : INotifyPropertyChanged
 {
     private bool _enabled;

@@ -10,6 +10,8 @@ public static class DeskBridgePaths
     public static string SettingsFile => Path.Combine(DataDirectory, "settings.json");
     public static string ActivityFile => Path.Combine(DataDirectory, "activity.jsonl");
     public static string LogDirectory => Path.Combine(DataDirectory, "logs");
+    public static string SecretDirectory => Path.Combine(DataDirectory, "secrets");
+    public static string AgentRunsDirectory => Path.Combine(DataDirectory, "agent-runs");
 }
 
 public sealed class SettingsStore(string? path = null)

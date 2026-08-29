@@ -14,13 +14,13 @@ Use Segoe UI Variable or Segoe UI in WPF and the Chrome/system UI stack in the e
 
 ## Layout
 
-The WPF shell has a stable left navigation rail and one primary content surface. Workspace identity and connection state remain visible. Activity is a table/list, not a grid of decorative cards. Permission rows pair the capability with its current policy and a direct control.
+The WPF shell has a stable top identity band and tabbed primary content surface. Agent is the first tab and presents one linear job: source file, desired outcome, bounded model controls, explicit upload action, then status and evidence. Workspace identity and connection state remain visible. Activity is a table/list, not a grid of decorative cards. Permission rows pair the capability with its current policy and a direct control.
 
 The extension popup is narrow and task-focused. Content-script controls attach to the relevant code block or image and do not compete with ChatGPT's own controls.
 
 ## Components and states
 
-Buttons have normal, hover, pressed, keyboard-focus, and disabled states. Status always includes text in addition to color. Empty activity and asset views explain what will appear and how to create it. Permission prompts show the action, target, affected files or command, workspace, and Allow once/Cancel choices.
+Buttons have normal, hover, pressed, keyboard-focus, and disabled states. Agent Start is disabled until workspace, source, request, and API key are ready; Cancel is available only while running. Status always includes text in addition to color. The run timeline exposes inspection, upload, reasoning, tool, completion, cancellation, and error states. Empty activity and asset views explain what will appear and how to create it. Permission prompts show the action, target, affected files or command, workspace, and Allow once/Cancel choices.
 
 ## Motion
 

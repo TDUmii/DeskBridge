@@ -28,7 +28,9 @@ npm.cmd audit --audit-level=moderate
 
 ## Run from source
 
-Start `src\DeskBridge.App\bin\Debug\net8.0-windows\DeskBridge.App.exe`, choose a workspace, load `extension\dist` as an unpacked extension, copy its ID from `chrome://extensions`, then register the native host:
+Start `src\DeskBridge.App\bin\Debug\net8.0-windows\DeskBridge.App.exe` and choose a workspace. For Agent development, save a test Platform API key in Settings or set `OPENAI_API_KEY`; never add a key to repository files. Agent contract and orchestration tests use local fakes and do not spend API credits.
+
+For optional browser integration, load `extension\dist` as an unpacked extension, copy its ID from `chrome://extensions`, then register the native host:
 
 ```powershell
 .\scripts\install-native-host.ps1 -ExtensionId <32-character-extension-id>
