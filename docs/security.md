@@ -1,58 +1,31 @@
 # Security model
 
-Every character rendered by ChatGPT Web is untrusted input. A user click expresses intent to inspect a request; it does not make the request safe.
+ChatGPT page content and generated files are untrusted. The native host and local verifier remain the security boundary.
 
-## Security pipeline
+## Web-only boundary
 
-```text
-ChatGPT output
-  -> extension schema and action whitelist
-  -> native message framing and JSON validation
-  -> native action registry
-  -> permission policy / Allow once dialog
-  -> normalized workspace boundary
-  -> action-specific validation
-  -> execution
-```
+- DeskBridge uses only the signed-in ChatGPT Web interface in a dedicated marked Chrome tab.
+- It never calls the OpenAI Platform API, switches to Codex, creates a Codex task/workspace, or stores an API key.
+- It does not read cookies, session tokens, local browser profiles, or private ChatGPT endpoints.
+- If GPT-5.6 Sol and High (3/3) cannot be verified from the visible page, no prompt is sent and the job fails closed.
+- Normal ChatGPT tabs cannot claim autonomous jobs.
 
-The native host is the security boundary. The extension can be replaced or modified without gaining an action that the host does not register.
+## Data flow
 
-## WorkspaceGuard
+Starting a run explicitly authorizes sending the selected file copy and request text through ChatGPT Web. File bytes travel from the native host to the extension in bounded chunks and are assigned to the page's visible upload input. Revisions send local inspection summaries back into the same conversation. No unrelated workspace file is uploaded.
 
-All project destinations and normal file actions are normalized with `Path.GetFullPath`. Matching requires either the exact workspace root or a child beginning with the root plus a directory separator, so `D:\Projects\App-Evil` does not match `D:\Projects\App`. Project child paths must be relative, may not contain `.`/`..`, and must still resolve under their project root. Existing reparse points are resolved and blocked when their final target escapes the workspace.
+## Download trust
 
-## Permissions
+Each run generates an unpredictable safety token that must appear in both the declared and downloaded filename. The service worker watches the exact name, the host verifies name equality, token presence, existence, and file timestamp, then copies it into the run directory before inspection. Generated executables or macro-capable documents remain untrusted and require user review.
 
-Read/list/inspect/status actions default to Allowed. Side-effect actions default to Ask. Blocked denies immediately. Ask connects to the current-user permission pipe and fails closed if the WPF app is unavailable. Clipboard content and file bodies are not copied into the permission log.
+## Completion and preservation
 
-## Commands
+The original is copied before browser work and is never a candidate destination. Every candidate receives a local hash and format-appropriate inspection. Publication requires score at least 90 and an empty remaining-issues list. Reaching the iteration limit preserves the best version for review without claiming success.
 
-There is no arbitrary shell action. `powershell`, `pwsh`, `cmd`, WSH, and unknown executables are rejected. Allowed programs are launched directly with `ProcessStartInfo.ArgumentList`, never string concatenation. Git reset/clean/prune/reflog/gc and force flags are blocked. Output is captured, time is limited, and timeout kills the process tree.
+## Existing local actions
 
-The allowed interpreters (`python`, `py`, `node`, `npm`, and `dotnet`) can execute project code. They therefore remain confirmation actions. DeskBridge does not claim that a confirmed interpreter invocation is sandboxed.
+Structured action blocks still pass through schema validation, action whitelist, permission policy, normalized workspace boundary, and action-specific validation. Side effects default to Ask. There is no arbitrary PowerShell/CMD action, credential extraction, registry editing action, shutdown/restart, remote control, or destructive filesystem action.
 
-## Skill adapters
+## Network and logs
 
-Local Codex skill folders are not automatically executable APIs. DeskBridge registers each integration explicitly. The document adapter accepts only supported document extensions, requires source and destination inside the workspace, requires a `.md` destination, invokes a fixed package entrypoint with an argument list, has a five-minute limit, and defaults to Ask. It never passes user input through a shell. Hosted OCR is intentionally unavailable because it would upload document content to a third party.
-
-Guidance profiles such as Impeccable only expose user-visible instruction text. They cannot run code or silently add instructions to ChatGPT messages.
-
-## Download SSRF protection
-
-Production downloads accept HTTPS only and reject embedded URL credentials. Every redirect is handled manually. The connection callback resolves the current hop, rejects loopback/private/link-local/carrier-grade NAT/benchmark/reserved IPv4 and local/link/site/unique-local IPv6, then connects the socket to a validated address. Redirects are revalidated up to five hops. The body is limited to 20 MB and a 30-second timeout.
-
-The downloader requires an allowed image MIME type and matching JPG/PNG/WebP/GIF/SVG signature. SVG payloads containing common active-content markers (`script`, JavaScript URLs, `onload`, or `foreignObject`) are rejected. Downloads are never executed.
-
-## Data minimization
-
-DeskBridge does not access ChatGPT cookies, tokens, internal APIs, browser profiles, or form submission. The autonomous Agent uses only the user-supplied OpenAI Platform API key and public API. Screenshots remain in `%TEMP%\DeskBridge`. Activity logs contain metadata only. Native Messaging exposes no listening network port.
-
-## OpenAI Agent boundary
-
-Starting an Agent run is an explicit upload action. DeskBridge sends the selected source copy, request text, and bounded local tool results to OpenAI. Agent tools can read only the current run directory and its preserved source copy—not unrelated workspace files—and text reads are capped. The encrypted API key is added only to HTTPS authorization headers and is absent from settings, logs, prompts, evidence JSON, and results.
-
-All local agent writes are constrained to `.deskbridge/agent-runs/<run-id>`. The original remains unchanged. Generated files must be downloaded and inspected before selection; publishing requires score 90 or greater and an empty remaining-issues list. These checks reduce accidental regressions but do not turn model output into trusted code or guarantee subjective quality. Users should review executable or macro-capable output before opening it.
-
-## Explicitly unsupported in V1
-
-Deletion, arbitrary PowerShell/CMD, registry editing actions, shutdown/restart, drive formatting, mouse/keyboard control, remote desktop, credential extraction, cookie/token extraction, and automatic ChatGPT message submission are not registered actions.
+Native Messaging exposes no listening network port. HTTPS asset downloads retain redirect-by-redirect SSRF protection and size/type validation. Activity logs contain metadata only. Browser credentials, file contents, screenshot bytes, and tokens are excluded from logs.

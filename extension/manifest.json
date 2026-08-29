@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "DeskBridge",
   "version": "1.0.0",
-  "description": "Run explicit DeskBridge action blocks from ChatGPT Web.",
-  "permissions": ["nativeMessaging", "storage"],
+  "description": "Run local actions and Web-only file review loops through ChatGPT Web.",
+  "permissions": ["nativeMessaging", "storage", "downloads"],
   "host_permissions": ["https://chatgpt.com/*"],
   "background": {
     "service_worker": "background/index.js",

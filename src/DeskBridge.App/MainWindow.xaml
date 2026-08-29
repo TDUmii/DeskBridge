@@ -19,18 +19,18 @@
                         <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="24"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="Give DeskBridge a finished-file task" FontSize="22" FontWeight="SemiBold"/>
-                            <TextBlock Text="The selected file and your request are uploaded to the OpenAI API. DeskBridge keeps the original, inspects each candidate locally, and saves the accepted result separately." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,6,0,20"/>
+                            <TextBlock Text="DeskBridge opens a dedicated ChatGPT Web tab, verifies GPT-5.6 Sol at High 3/3, uploads this file through the signed-in page, and inspects every downloaded candidate locally. It never switches to Codex, a Codex workspace, or the API." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,6,0,20"/>
                             <TextBlock Text="1  Source file" FontWeight="SemiBold"/>
                             <Grid Margin="0,7,0,18"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBox Text="{Binding AgentSourcePath, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" MinHeight="40" VerticalContentAlignment="Center"/><Button Grid.Column="1" Content="Choose file" Margin="8,0,0,0" Click="ChooseAgentFile_Click"/></Grid>
                             <TextBlock Text="2  What should the finished file be like?" FontWeight="SemiBold"/>
                             <TextBox Text="{Binding AgentRequest, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="150" MaxHeight="260" VerticalScrollBarVisibility="Auto" Margin="0,7,0,18" AutomationProperties.Name="Agent request"/>
                             <Grid Margin="0,0,0,18"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="16"/><ColumnDefinition/><ColumnDefinition Width="16"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                <StackPanel><TextBlock Text="Model" FontSize="12" Foreground="{DynamicResource MutedBrush}"/><ComboBox ItemsSource="{Binding AgentModels}" SelectedItem="{Binding AgentModel}" Margin="0,5,0,0"/></StackPanel>
-                                <StackPanel Grid.Column="2"><TextBlock Text="Reasoning" FontSize="12" Foreground="{DynamicResource MutedBrush}"/><ComboBox ItemsSource="{Binding AgentReasoningModes}" SelectedItem="{Binding AgentReasoning}" Margin="0,5,0,0"/></StackPanel>
+                                <StackPanel><TextBlock Text="Web model · fixed" FontSize="12" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding AgentModel}" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Reasoning · fixed" FontSize="12" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding AgentReasoning}" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel>
                                 <StackPanel Grid.Column="4"><TextBlock Text="Max passes" FontSize="12" Foreground="{DynamicResource MutedBrush}"/><ComboBox ItemsSource="{Binding AgentIterationOptions}" SelectedItem="{Binding AgentIterations}" Margin="0,5,0,0"/></StackPanel>
                             </Grid>
-                            <StackPanel Orientation="Horizontal"><Button Content="Start agent · uploads file" Style="{StaticResource PrimaryButton}" IsEnabled="{Binding CanStartAgent}" Click="StartAgent_Click"/><Button Content="Cancel" Margin="8,0,0,0" IsEnabled="{Binding IsAgentRunning}" Click="CancelAgent_Click"/><Button Content="Open result" Margin="8,0,0,0" IsEnabled="{Binding HasAgentResult}" Click="OpenAgentResult_Click"/></StackPanel>
-                            <TextBlock Text="Requires a workspace, a source file inside it, a saved API key, and a clear request." Foreground="{DynamicResource MutedBrush}" FontSize="12" Margin="0,9,0,0"/>
+                            <StackPanel Orientation="Horizontal"><Button Content="Start in ChatGPT Web · uploads file" Style="{StaticResource PrimaryButton}" IsEnabled="{Binding CanStartAgent}" Click="StartAgent_Click"/><Button Content="Cancel" Margin="8,0,0,0" IsEnabled="{Binding IsAgentRunning}" Click="CancelAgent_Click"/><Button Content="Open result" Margin="8,0,0,0" IsEnabled="{Binding HasAgentResult}" Click="OpenAgentResult_Click"/></StackPanel>
+                            <TextBlock Text="Requires Chrome, the DeskBridge extension, a signed-in ChatGPT Web tab, a local folder, a source file, and a clear request. If Sol High cannot be verified, the run stops without sending." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,9,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
@@ -56,11 +56,9 @@
             <TabItem Header="Settings">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="6,20" MaxWidth="860" HorizontalAlignment="Left">
-                        <TextBlock Text="OpenAI connection" FontSize="20" FontWeight="SemiBold"/>
-                        <TextBlock Text="Use a Platform API key for the autonomous file agent. It is encrypted with Windows Data Protection for this user and never stored in settings or logs." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,5,0,12"/>
-                        <TextBlock Text="{Binding ApiKeyStatus}" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                        <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="360"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><PasswordBox x:Name="ApiKeyBox" Padding="10,8" MinHeight="38" AutomationProperties.Name="OpenAI API key"/><Button Grid.Column="1" Content="Save key" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0" Click="SaveApiKey_Click"/></Grid>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,28"><Button Content="Test connection" IsEnabled="{Binding ApiKeyConfigured}" Click="TestApiKey_Click"/><Button Content="Remove saved key" Margin="8,0,0,0" IsEnabled="{Binding ApiKeyConfigured}" Click="RemoveApiKey_Click"/></StackPanel>
+                        <TextBlock Text="ChatGPT Web transport" FontSize="20" FontWeight="SemiBold"/>
+                        <TextBlock Text="Browser-only is locked on. DeskBridge uses the signed-in ChatGPT Web page through its Chrome extension and refuses to fall back to Codex, a Codex workspace, or the Platform API. No API key is stored or requested." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,5,0,8"/>
+                        <TextBlock Text="{Binding AgentTransport}" FontWeight="SemiBold" Margin="0,0,0,28"/>
                         <TextBlock Text="Appearance" FontSize="20" FontWeight="SemiBold"/>
                         <TextBlock Text="Follow Windows automatically or keep a fixed light or dark appearance." Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,12"/>
                         <Grid Margin="0,0,0,26"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Color theme" FontWeight="SemiBold" VerticalAlignment="Center"/><ComboBox Grid.Column="1" ItemsSource="{Binding ThemeModes}" SelectedItem="{Binding SelectedTheme, Mode=TwoWay}" SelectionChanged="Theme_SelectionChanged" AutomationProperties.Name="Color theme"/></Grid>

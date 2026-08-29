@@ -1,9 +1,23 @@
 import { ChatGptDomAdapter } from "./ChatGptDomAdapter.js";
 import { ChatGptImageAdapter } from "./ChatGptImageAdapter.js";
-import { DeskBridgeRequest, DeskBridgeResponse, newId, parseRequest } from "../shared/protocol.js";
+import { ChatGptWebAgentAdapter } from "./ChatGptWebAgentAdapter.js";
+import { CandidateAssessment, DeskBridgeRequest, DeskBridgeResponse, WebAgentClaim, newId, parseRequest } from "../shared/protocol.js";
 
 const dom = new ChatGptDomAdapter();
 const images = new ChatGptImageAdapter();
+const webAgent = new ChatGptWebAgentAdapter();
+let webAgentBusy = false;
+
+interface CandidateResult {
+  accepted: boolean;
+  terminal: boolean;
+  status: string;
+  localPath: string;
+  summary: string;
+  score: number;
+  remainingIssues: string[];
+  followUpPrompt?: string;
+}
 
 async function run(request: DeskBridgeRequest): Promise<DeskBridgeResponse> {
   return chrome.runtime.sendMessage({ type: "run", request }) as Promise<DeskBridgeResponse>;
@@ -102,5 +116,95 @@ function scan(): void {
   enhanceImages();
 }
 
+async function nativeMessage(type: string, values: Record<string, unknown> = {}): Promise<DeskBridgeResponse> {
+  return chrome.runtime.sendMessage({ type, ...values }) as Promise<DeskBridgeResponse>;
+}
+
+async function waitForDownload(token: string): Promise<string> {
+  const deadline = Date.now() + 180_000;
+  while (Date.now() < deadline) {
+    const status = await chrome.runtime.sendMessage({ type: "downloadStatus", token }) as
+      { state: string; path?: string; error?: string };
+    if (status.state === "complete" && status.path) return status.path;
+    if (status.state === "failed") throw new Error(status.error ?? "ChatGPT Web download failed.");
+    await new Promise(resolve => window.setTimeout(resolve, 500));
+  }
+  throw new Error("ChatGPT Web download timed out.");
+}
+
+async function reportProgress(runId: string, stage: string, message: string): Promise<void> {
+  const response = await nativeMessage("webAgentProgress", { runId, stage, message, chatUrl: location.href });
+  if (!response.success) throw new Error(response.error?.message ?? "Could not update the DeskBridge run.");
+}
+
+async function downloadCandidate(runId: string, assessment: CandidateAssessment, candidateToken: string): Promise<CandidateResult> {
+  if (!assessment.candidateFile.toLowerCase().includes(candidateToken.toLowerCase()))
+    throw new Error("ChatGPT Web declared a candidate without the run's unique safety token.");
+  const control = webAgent.candidateControl(document, assessment.candidateFile);
+  const armed = await chrome.runtime.sendMessage({ type: "armDownload", expectedFilename: assessment.candidateFile }) as
+    { success: boolean; token?: string };
+  if (!armed.success || !armed.token) throw new Error("Could not arm the safe download watcher.");
+  control.click();
+  const downloadedPath = await waitForDownload(armed.token);
+  const response = await nativeMessage("webAgentCandidate", { runId, downloadedPath, assessment });
+  if (!response.success) throw new Error(response.error?.message ?? "DeskBridge rejected the downloaded candidate.");
+  return response.data as CandidateResult;
+}
+
+async function executeWebAgent(claim: WebAgentClaim): Promise<void> {
+  try {
+    webAgent.showStatus("DeskBridge · checking ChatGPT Web", "Requiring GPT-5.6 Sol with High reasoning (3/3). No Codex, Codex workspace, or API fallback.");
+    await webAgent.ensureSolHigh();
+    await reportProgress(claim.runId, "Verified", "GPT-5.6 Sol · High (3/3) verified in ChatGPT Web.");
+    webAgent.showStatus("DeskBridge · attaching source", claim.sourceFileName);
+    await webAgent.uploadSource(claim);
+
+    let prompt = claim.prompt;
+    for (let iteration = 1; iteration <= claim.maximumIterations; iteration++) {
+      if (iteration > 1) await webAgent.ensureSolHigh();
+      webAgent.showStatus(`DeskBridge · web pass ${iteration}/${claim.maximumIterations}`, "ChatGPT Web is creating and checking a downloadable candidate.");
+      await reportProgress(claim.runId, "ChatGPT Web", `Running web pass ${iteration} of ${claim.maximumIterations}.`);
+      const turn = await webAgent.submitPrompt(prompt);
+      const assessment = webAgent.assessment(turn);
+      webAgent.showStatus("DeskBridge · local verification", `Downloading ${assessment.candidateFile} for an independent local check.`);
+      const result = await downloadCandidate(claim.runId, assessment, claim.candidateToken);
+      if (result.terminal) {
+        webAgent.showStatus(result.accepted ? "DeskBridge · finished" : "DeskBridge · best version preserved",
+          result.accepted ? `Verified locally · score ${result.score}/100 · ${result.localPath}` : result.summary,
+          result.accepted ? "success" : "error");
+        return;
+      }
+      if (!result.followUpPrompt) throw new Error("DeskBridge requested another pass without a follow-up prompt.");
+      prompt = result.followUpPrompt;
+    }
+    throw new Error("The ChatGPT Web run ended without a terminal local assessment.");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "The ChatGPT Web-only run failed.";
+    await nativeMessage("webAgentFail", { runId: claim.runId, message }).catch(() => undefined);
+    webAgent.showStatus("DeskBridge · stopped safely", `${message} No Codex, Codex workspace, or API fallback was used.`, "error");
+  }
+}
+
+async function pollWebAgent(): Promise<void> {
+  if (!webAgent.isDedicatedAgentTab() || webAgentBusy) return;
+  webAgentBusy = true;
+  try {
+    const response = await nativeMessage("webAgentClaim");
+    if (!response.success) {
+      webAgent.showStatus("DeskBridge · native bridge unavailable", response.error?.message ?? "Open the DeskBridge desktop app.", "error");
+      return;
+    }
+    const claim = response.data as WebAgentClaim | null;
+    if (claim) await executeWebAgent(claim);
+  } finally {
+    webAgentBusy = false;
+  }
+}
+
 new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
 scan();
+if (webAgent.isDedicatedAgentTab()) {
+  webAgent.showStatus("DeskBridge · ChatGPT Web only", "Waiting for a local job. GPT-5.6 Sol · High is mandatory.");
+  void pollWebAgent();
+  window.setInterval(() => void pollWebAgent(), 2_000);
+}

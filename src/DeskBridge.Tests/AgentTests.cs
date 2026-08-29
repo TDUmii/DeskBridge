@@ -1,158 +1,133 @@
-using System.Net;
 using System.Text;
 using System.Text.Json;
 using DeskBridge.Core.Agent;
+using DeskBridge.Core.Models;
 
 namespace DeskBridge.Tests;
 
 public sealed class AgentTests
 {
     [Fact]
-    public async Task AgentRunDownloadsInspectsAndPublishesAcceptedCandidate()
+    public async Task WebStorePreservesSourceAndPublishesAcceptedCandidate()
     {
         using var workspace = new TestWorkspace();
         var source = workspace.PathOf("brief.txt");
         await File.WriteAllTextAsync(source, "Keep this original.");
-        var fake = new CompletingAgentClient();
-        var service = new AgentRunService(fake);
+        var store = Store(workspace);
+        var job = store.Create(new AgentRunRequest(workspace.Root, source, "Create a polished Markdown result.", new AgentRunOptions()));
+        var claim = store.ClaimNext();
 
-        var result = await service.RunAsync(new AgentRunRequest(workspace.Root, source, "Create a polished Markdown result.",
-            new AgentRunOptions("gpt-5.6-luna", "low", 4, 12, 4_000)), null, CancellationToken.None);
+        Assert.NotNull(claim);
+        Assert.Equal("GPT-5.6 Sol", claim.RequiredModel);
+        Assert.Equal("High", claim.RequiredReasoning);
+        Assert.Contains("Do not suggest Codex", claim.Prompt, StringComparison.Ordinal);
+        Assert.Contains("OpenAI API", claim.Prompt, StringComparison.Ordinal);
+        Assert.Contains(claim.CandidateToken, claim.Prompt, StringComparison.Ordinal);
 
-        Assert.True(result.Success);
+        var candidateName = $"finished-{claim.CandidateToken}.md";
+        var downloaded = workspace.PathOf(candidateName);
+        await File.WriteAllTextAsync(downloaded, "# Finished result\n\nVerified locally.");
+        var result = await store.InspectCandidateAsync(job.Id, downloaded,
+            new BrowserCandidateAssessment(candidateName, 95, "All requested content is present.", ["Polished Markdown"], []), CancellationToken.None);
+
+        Assert.True(result.Accepted);
+        Assert.True(result.Terminal);
         Assert.Equal("completed", result.Status);
-        Assert.Equal(95, result.Score);
-        Assert.NotNull(result.BestArtifactPath);
-        Assert.True(File.Exists(result.BestArtifactPath));
-        Assert.Contains("DeskBridge Results", result.BestArtifactPath, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal("# Improved result\n\nVerified locally.", await File.ReadAllTextAsync(result.BestArtifactPath!));
+        Assert.True(File.Exists(result.LocalPath));
+        Assert.Contains("DeskBridge Results", result.LocalPath, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("Keep this original.", await File.ReadAllTextAsync(source));
-        Assert.True(File.Exists(Path.Combine(result.RunDirectory, "task.json")));
-        Assert.True(File.Exists(Path.Combine(result.RunDirectory, "result.json")));
-        Assert.Equal(66, result.Usage.TotalTokens);
+        Assert.Equal("Keep this original.", await File.ReadAllTextAsync(job.PreservedSourcePath));
     }
 
     [Fact]
-    public async Task AgentCannotWriteOverOriginalWorkspaceFile()
+    public async Task LocalInspectionRequestsAnotherWebPassBelowCompletionGate()
     {
         using var workspace = new TestWorkspace();
-        var source = workspace.PathOf("protected.txt");
-        await File.WriteAllTextAsync(source, "original");
-        var fake = new OverwriteAttemptClient(source);
-        var service = new AgentRunService(fake);
+        var source = workspace.PathOf("source.txt");
+        await File.WriteAllTextAsync(source, "source");
+        var store = Store(workspace);
+        var job = store.Create(new AgentRunRequest(workspace.Root, source, "Improve it.", new AgentRunOptions(3)));
+        var claim = store.ClaimNext()!;
+        var candidateName = $"draft-{claim.CandidateToken}.md";
+        var downloaded = workspace.PathOf(candidateName);
+        await File.WriteAllTextAsync(downloaded, "draft");
 
-        var result = await service.RunAsync(new AgentRunRequest(workspace.Root, source, "Improve it.",
-            new AgentRunOptions("gpt-5.6-luna", "low", 2, 4, 2_000)), null, CancellationToken.None);
+        var result = await store.InspectCandidateAsync(job.Id, downloaded,
+            new BrowserCandidateAssessment(candidateName, 72, "Incomplete.", ["A draft exists"], ["Missing final detail"]), CancellationToken.None);
+        var updated = store.Read(job.Id)!;
 
-        Assert.False(result.Success);
-        Assert.Equal("failed", result.Status);
-        Assert.Equal("original", await File.ReadAllTextAsync(source));
-        Assert.Contains("Agent tools may access only", fake.LastToolOutput, StringComparison.Ordinal);
+        Assert.False(result.Accepted);
+        Assert.False(result.Terminal);
+        Assert.Equal(2, updated.Iteration);
+        Assert.Contains("downloaded and inspected", result.FollowUpPrompt, StringComparison.Ordinal);
+        Assert.Contains("Missing final detail", result.FollowUpPrompt, StringComparison.Ordinal);
+        Assert.Contains("same safety token", result.FollowUpPrompt, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task WindowsApiKeyStoreEncryptsAndRoundTripsForCurrentUser()
+    public async Task CandidateWithoutRunTokenIsRejected()
     {
         using var workspace = new TestWorkspace();
-        var path = workspace.PathOf("secret.bin");
-        var store = new WindowsApiKeyStore(path);
+        var source = workspace.PathOf("source.txt");
+        await File.WriteAllTextAsync(source, "source");
+        var store = Store(workspace);
+        var job = store.Create(new AgentRunRequest(workspace.Root, source, "Improve it.", new AgentRunOptions()));
+        store.ClaimNext();
+        var downloaded = workspace.PathOf("untrusted.md");
+        await File.WriteAllTextAsync(downloaded, "not this run");
 
-        await store.SaveAsync("sk-test-deskbridge-roundtrip");
-
-        Assert.True(store.HasKey);
-        Assert.Equal("sk-test-deskbridge-roundtrip", await store.LoadAsync());
-        Assert.DoesNotContain("sk-test", Encoding.UTF8.GetString(await File.ReadAllBytesAsync(path)), StringComparison.Ordinal);
-        store.Delete();
-        Assert.False(File.Exists(path));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => store.InspectCandidateAsync(job.Id, downloaded,
+            new BrowserCandidateAssessment("untrusted.md", 100, "Claimed complete.", [], []), CancellationToken.None));
     }
 
     [Fact]
-    public async Task ResponsesClientSendsOfficialToolLoopShape()
+    public void SourceChunksRoundTripWithoutGivingBrowserAWorkspacePath()
     {
-        var handler = new RecordingHandler();
-        var client = new OpenAIResponsesClient(new HttpClient(handler), new StaticKeyStore());
-        var options = new AgentRunOptions("gpt-5.6-luna", "low", 4, 24, 6_000);
+        using var workspace = new TestWorkspace();
+        var source = workspace.PathOf("unicode.txt");
+        File.WriteAllText(source, "Xin chào DeskBridge", new UTF8Encoding(false));
+        var store = Store(workspace);
+        var job = store.Create(new AgentRunRequest(workspace.Root, source, "Check it.", new AgentRunOptions()));
+        store.ClaimNext();
 
-        var initial = await client.CreateInitialAsync("instructions", "prompt", "file-input", options, CancellationToken.None);
-        await client.ContinueAsync("instructions", initial.Id, [new ToolOutput("call-1", "{\"success\":true}")], options, CancellationToken.None);
+        using var json = JsonDocument.Parse(JsonSerializer.Serialize(store.ReadSourceChunk(job.Id, 0, 7), DeskBridgeJson.Options));
+        var root = json.RootElement;
+        var first = Convert.FromBase64String(root.GetProperty("bytes").GetString()!);
 
-        Assert.Equal(2, handler.Payloads.Count);
-        using var first = JsonDocument.Parse(handler.Payloads[0]);
-        Assert.Equal("gpt-5.6-luna", first.RootElement.GetProperty("model").GetString());
-        Assert.Equal("file-input", first.RootElement.GetProperty("input")[0].GetProperty("content")[1].GetProperty("file_id").GetString());
-        Assert.Contains(first.RootElement.GetProperty("tools").EnumerateArray(), tool => tool.GetProperty("type").GetString() == "code_interpreter");
-        using var second = JsonDocument.Parse(handler.Payloads[1]);
-        Assert.Equal("resp-1", second.RootElement.GetProperty("previous_response_id").GetString());
-        Assert.Equal("function_call_output", second.RootElement.GetProperty("input")[0].GetProperty("type").GetString());
+        Assert.NotEmpty(first);
+        Assert.False(root.TryGetProperty("path", out _));
+        Assert.Equal(7, root.GetProperty("nextOffset").GetInt64());
     }
 
-    private static ResponseToolCall Call(string id, string name, object arguments)
+    [Fact]
+    public async Task NativeControllerRejectsMalformedAssessment()
     {
-        using var document = JsonDocument.Parse(JsonSerializer.Serialize(arguments));
-        return new ResponseToolCall(id, name, document.RootElement.Clone());
-    }
-
-    private sealed class CompletingAgentClient : IOpenAIResponsesClient
-    {
-        public Task TestConnectionAsync(string model, CancellationToken cancellationToken) => Task.CompletedTask;
-        public Task<string> UploadFileAsync(string path, CancellationToken cancellationToken) => Task.FromResult("file-input");
-        public Task<AgentResponse> CreateInitialAsync(string instructions, string prompt, string inputFileId, AgentRunOptions options, CancellationToken cancellationToken) =>
-            Task.FromResult(new AgentResponse("resp-1", "completed", string.Empty,
-                [Call("call-save", "save_generated_file", new { file_id = "file-output", filename = "result.md", claimed_score = 95, summary = "All requested content is present." })],
-                [], new AgentUsage(20, 10, 30), null));
-        public Task<AgentResponse> ContinueAsync(string instructions, string previousResponseId, IReadOnlyList<ToolOutput> outputs, AgentRunOptions options, CancellationToken cancellationToken)
+        using var workspace = new TestWorkspace();
+        var controller = new WebAgentNativeController(Store(workspace));
+        using var arguments = JsonDocument.Parse("""{"runId":"missing","downloadedPath":"x","assessment":{"candidateFile":"","score":95,"summary":"x","requirementsMet":[],"remainingIssues":[]}}""");
+        var response = await controller.ExecuteAsync(new ActionRequest
         {
-            using var output = JsonDocument.Parse(outputs.Single().Output);
-            var path = output.RootElement.GetProperty("path").GetString();
-            return Task.FromResult(new AgentResponse("resp-2", "completed", string.Empty,
-                [Call("call-complete", "complete_task", new { best_path = path, score = 95, summary = "Verified result.", requirements_met = new[] { "Polished Markdown" }, remaining_issues = Array.Empty<string>() })],
-                [], new AgentUsage(24, 12, 36), null));
-        }
-        public async Task DownloadFileAsync(string fileId, string destination, CancellationToken cancellationToken)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-            await File.WriteAllTextAsync(destination, "# Improved result\n\nVerified locally.", cancellationToken);
-        }
+            Version = 1, Id = "test", Action = "web_agent_candidate", Arguments = arguments.RootElement.Clone()
+        }, CancellationToken.None);
+
+        Assert.False(response.Success);
+        Assert.Contains("non-empty", response.Error!.Message, StringComparison.Ordinal);
     }
 
-    private sealed class OverwriteAttemptClient(string path) : IOpenAIResponsesClient
+    [Fact]
+    public void CancelledRunIsTerminalAndCannotBeClaimed()
     {
-        public string LastToolOutput { get; private set; } = string.Empty;
-        public Task TestConnectionAsync(string model, CancellationToken cancellationToken) => Task.CompletedTask;
-        public Task<string> UploadFileAsync(string source, CancellationToken cancellationToken) => Task.FromResult("file-input");
-        public Task<AgentResponse> CreateInitialAsync(string instructions, string prompt, string inputFileId, AgentRunOptions options, CancellationToken cancellationToken) =>
-            Task.FromResult(new AgentResponse("resp-1", "completed", string.Empty,
-                [Call("call-write", "write_text_file", new { path, content = "overwritten", overwrite = true })], [], new AgentUsage(1, 1, 2), null));
-        public Task<AgentResponse> ContinueAsync(string instructions, string previousResponseId, IReadOnlyList<ToolOutput> outputs, AgentRunOptions options, CancellationToken cancellationToken)
-        {
-            LastToolOutput = outputs.Single().Output;
-            return Task.FromResult(new AgentResponse("resp-2", "completed", string.Empty,
-                [Call("call-write-2", "write_text_file", new { path, content = "still overwritten", overwrite = true })], [], new AgentUsage(1, 1, 2), null));
-        }
-        public Task DownloadFileAsync(string fileId, string destination, CancellationToken cancellationToken) => Task.CompletedTask;
+        using var workspace = new TestWorkspace();
+        var source = workspace.PathOf("source.txt");
+        File.WriteAllText(source, "source");
+        var store = Store(workspace);
+        var job = store.Create(new AgentRunRequest(workspace.Root, source, "Improve it.", new AgentRunOptions()));
+
+        var cancelled = store.Cancel(job.Id);
+
+        Assert.Equal("cancelled", cancelled.Status);
+        Assert.Null(store.ClaimNext());
     }
 
-    private sealed class StaticKeyStore : IApiKeyStore
-    {
-        public bool HasKey => true;
-        public Task SaveAsync(string apiKey, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<string?> LoadAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>("sk-test");
-        public void Delete() { }
-    }
-
-    private sealed class RecordingHandler : HttpMessageHandler
-    {
-        public List<string> Payloads { get; } = [];
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            Payloads.Add(await request.Content!.ReadAsStringAsync(cancellationToken));
-            var responseNumber = Payloads.Count;
-            var json = JsonSerializer.Serialize(new
-            {
-                id = $"resp-{responseNumber}", status = "completed", output = Array.Empty<object>(),
-                usage = new { input_tokens = 1, output_tokens = 1, total_tokens = 2 }
-            });
-            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
-        }
-    }
+    private static BrowserAgentStore Store(TestWorkspace workspace) => new(workspace.PathOf("store"), new ArtifactInspector());
 }

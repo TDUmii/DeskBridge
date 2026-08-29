@@ -4,56 +4,35 @@
 
 ## Platform
 
-adaptive
+Windows desktop with a Chrome companion.
 
 ## Stack
 
-C# and .NET 8 for a Windows WPF file-agent control panel, class library, and native-messaging console host. The optional ChatGPT Web integration is a dependency-light Manifest V3 Chrome extension written in TypeScript, HTML, and CSS. Autonomous work uses the official OpenAI Responses API with function tools and Code Interpreter.
+C# and .NET 8 power the WPF control panel, local verifier, and Chrome Native Messaging host. A dependency-light Manifest V3 extension uses TypeScript, HTML, and CSS to operate a dedicated signed-in ChatGPT Web tab.
 
-## Users
+## Product purpose
 
-Windows users who want to describe a file outcome in ordinary language and receive a locally inspected result without manually uploading and downloading every revision. The explicit ChatGPT Web action workflow remains available for lightweight local operations.
+DeskBridge turns a normal file request into a bounded ChatGPT Web workflow. It preserves the selected source, opens a dedicated web tab, requires GPT-5.6 Sol with High reasoning, uploads through the visible ChatGPT page, downloads each proposed artifact, checks it locally, and asks the same web conversation for revisions until the completion gate passes or the configured pass limit is reached.
 
-## Product Purpose
+## Non-negotiable boundary
 
-DeskBridge is a bounded autonomous file agent plus a local browser companion. The Agent sends one explicitly selected source file and request to the official OpenAI Responses API, downloads versioned candidates, checks them locally, repeats within budgets, and publishes the best accepted artifact without changing the original. The browser companion executes structured actions proposed in ChatGPT responses through the existing permission boundary.
+The Agent is ChatGPT Web-only. It never switches to Codex, creates or uses a Codex workspace/task, calls the OpenAI Platform API, asks for an API key, or reads browser cookies/session tokens. If the required web model or High level cannot be verified, the run stops safely.
 
-## Positioning
+## Operating context
 
-DeskBridge is deliberately not ChatGPT Web automation or a local HTTP service. It never borrows a browser login. Autonomous behavior uses an explicit Platform API connection; local tools, workspace boundaries, iteration limits, preserved originals, visible evidence, and a completion gate keep the loop inspectable.
+The user signs in to ChatGPT normally in Chrome, installs the DeskBridge extension/native host, selects one local workspace and source file, then describes the finished outcome. The original remains unchanged. Accepted output appears in `DeskBridge Results`; every candidate and inspection record stays in a workspace-local evidence directory.
 
-## Operating Context
+## Capabilities and constraints
 
-Users select one allowed workspace, save their API key, choose a source file, describe the finished result, and start the Agent with an explicit upload action. They can cancel, observe the run timeline, open evidence, and open the accepted result. The optional browser flow still supports explicit action blocks and permission review.
+- Windows 10/11, Google Chrome, and a signed-in ChatGPT Web account with GPT-5.6 Sol are required.
+- Production communication uses Chrome Native Messaging only; DeskBridge exposes no local HTTP server.
+- Only a tab opened with the DeskBridge agent marker may claim autonomous jobs; normal ChatGPT tabs are not polled for work.
+- Model and reasoning are locked to GPT-5.6 Sol and High (3/3) and verified before sending.
+- The selected source is transferred to the page through the visible file-upload control. No cookies, tokens, browser profile data, private endpoints, or API keys are accessed.
+- Downloads require the run's unique filename token before local inspection.
+- The original file cannot be overwritten. Completion requires a locally inspected candidate, score at least 90, and no declared remaining issue.
+- Existing explicit action blocks remain permission- and workspace-guarded.
 
-## Capabilities and Constraints
+## Brand and experience
 
-- Windows 10/11 first; .NET 8, Chrome, Node.js, and Git are required for development.
-- Production communication uses Chrome Native Messaging only; no network-listening API.
-- No arbitrary shell, PowerShell, CMD, mouse/keyboard automation, credential access, ChatGPT token/cookie access, deletion, shutdown, restart, or private ChatGPT API.
-- Webpage output is untrusted. The native host validates the protocol, action whitelist, permission, workspace boundary, and action-specific arguments.
-- File/project destinations remain inside the selected workspace. Downloads are HTTPS-only, size-limited, content-validated, and protected against private-network SSRF including redirects.
-- Image V1 supports inspection, resize, compression, PNG/JPEG/WebP conversion, and explicit local import. ChatGPT image saving is best-effort and falls back to import.
-- UI must expose cancellation and terminal success/failure states; no action runs automatically from page content.
-- API keys are DPAPI-encrypted for the current Windows user and excluded from settings, logs, evidence, and source control.
-- The Agent is bounded to 2–8 configured passes and 1–64 tool calls, cannot overwrite the original, and retains versioned evidence.
-
-## Brand Commitments
-
-The product name is DeskBridge. Voice is direct, calm, and security-conscious. UI is simple, modern, readable, and native to a Windows utility; status, scope, and consequences take priority over decoration.
-
-## Evidence on Hand
-
-The supplied specification defines the complete repository topology, protocol, supported actions, error codes, permission levels, 16 end-to-end demo flows, test matrix, and Git workflow. No external commercial claims, customer logos, testimonials, or brand assets are supplied and none may be fabricated.
-
-## Product Principles
-
-- Safety before convenience.
-- Explicit user action and visible permission before side effects.
-- Native validation is the source of truth.
-- Small, debuggable components instead of giant dispatch code.
-- Working end-to-end flows and honest limitations over placeholders.
-
-## Accessibility & Inclusion
-
-The desktop and extension interfaces require keyboard focus visibility, readable contrast, clear non-color status labels, descriptive action copy, and useful loading, empty, disabled, success, and error states.
+DeskBridge is calm, direct, and security-conscious. The UI is a native dark-capable Windows operations panel with readable status, clear scope, keyboard focus, non-color state labels, cancellation, and honest failure guidance.

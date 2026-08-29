@@ -2,7 +2,7 @@
 
 ## Direction
 
-DeskBridge uses a quiet Windows operations-console language: a warm off-white canvas, ink text, restrained blue for primary actions, teal for connected/success states, amber for pending permission, and red only for denial/failure. The interface should feel trustworthy in long desktop sessions and remain legible at 100–150% scaling.
+DeskBridge uses a quiet Windows operations-console language. Light mode uses a warm off-white canvas; dark mode uses layered charcoal surfaces rather than pure black. Restrained blue marks primary actions, teal marks connected/success, amber marks waiting, and red is reserved for failure.
 
 ## Mode
 
@@ -10,22 +10,20 @@ Operate. Fast scanning, explicit scope, predictable controls, and durable termin
 
 ## Typography
 
-Use Segoe UI Variable or Segoe UI in WPF and the Chrome/system UI stack in the extension. Use monospace only for paths, commands, IDs, and protocol results. Titles are sentence case and compact.
+Use Segoe UI Variable or Segoe UI in WPF and the Chrome/system stack in the extension. Monospace is limited to paths, commands, IDs, and protocol results. Titles use sentence case.
 
 ## Layout
 
-The WPF shell has a stable top identity band and tabbed primary content surface. Agent is the first tab and presents one linear job: source file, desired outcome, bounded model controls, explicit upload action, then status and evidence. Workspace identity and connection state remain visible. Activity is a table/list, not a grid of decorative cards. Permission rows pair the capability with its current policy and a direct control.
-
-The extension popup is narrow and task-focused. Content-script controls attach to the relevant code block or image and do not compete with ChatGPT's own controls.
+The Agent tab presents one linear job: selected source, requested outcome, locked ChatGPT Web transport, locked GPT-5.6 Sol and High 3/3 indicators, explicit start/cancel controls, then status and evidence. Workspace identity remains visible. The extension adds a compact floating status strip only to the dedicated agent tab; it must not obscure the composer.
 
 ## Components and states
 
-Buttons have normal, hover, pressed, keyboard-focus, and disabled states. Agent Start is disabled until workspace, source, request, and API key are ready; Cancel is available only while running. Status always includes text in addition to color. The run timeline exposes inspection, upload, reasoning, tool, completion, cancellation, and error states. Empty activity and asset views explain what will appear and how to create it. Permission prompts show the action, target, affected files or command, workspace, and Allow once/Cancel choices.
+Start is enabled when a workspace, existing source, and non-empty request are ready. No API key field exists. Status explicitly names Waiting, Verifying, Uploading, ChatGPT Web pass, Local verification, Revising, Completed, Review needed, Cancelled, or Failed. A web failure always states that no Codex/API fallback ran.
+
+## Theme
+
+Both WPF and extension surfaces support light and dark appearance. Text and controls target WCAG AA contrast. Focus rings remain visible. The floating web status strip uses translucent theme-appropriate surfaces and a text label in addition to its status dot.
 
 ## Motion
 
-Motion is limited to short state transitions and a subtle connected-status pulse. Respect reduced-motion preferences in the extension. No looping decorative animation.
-
-## Accessibility
-
-Text contrast targets WCAG AA. Keyboard navigation follows visual order. Focus rings are never removed. Controls use action-specific labels and errors include recovery guidance.
+Motion is limited to short state transitions and a subtle working pulse. Reduced-motion preferences disable the pulse.

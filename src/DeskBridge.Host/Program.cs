@@ -4,11 +4,13 @@ using DeskBridge.Core.Models;
 using DeskBridge.Core.Services;
 using DeskBridge.Host.NativeMessaging;
 using DeskBridge.Core.Skills;
+using DeskBridge.Core.Agent;
 
 var settingsStore = new SettingsStore();
 var activityLogger = new ActivityLogger();
 var registry = ActionRuntime.CreateRegistry();
 var transport = new NativeMessagingTransport(Console.OpenStandardInput(), Console.OpenStandardOutput());
+var webAgent = new WebAgentNativeController(new BrowserAgentStore());
 
 while (true)
 {
@@ -37,7 +39,11 @@ while (true)
         else
         {
             var settings = await settingsStore.LoadAsync();
-            if (string.Equals(request.Action, "get_status", StringComparison.OrdinalIgnoreCase))
+            if (WebAgentNativeController.Actions.Contains(request.Action))
+            {
+                response = ActionResponse.FromResult(request.Id, await webAgent.ExecuteAsync(request, CancellationToken.None));
+            }
+            else if (string.Equals(request.Action, "get_status", StringComparison.OrdinalIgnoreCase))
             {
                 response = new ActionResponse(1, request.Id, true, new
                 {

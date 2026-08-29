@@ -5,14 +5,14 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 h1 { margin: 0; font-size: 22px; letter-spacing: -.02em; } p { margin: 2px 0 0; color: #5b6770; }
 .status { border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .status.connected { background: #dcefe8; color: #155d47; } .status.error { background: #f8dedc; color: #8a2926; } .status.pending { background: #f5e9ca; color: #6f5111; }
-section { border-top: 1px solid #d7d3ca; padding: 13px 0; } .label { display: block; margin-bottom: 3px; color: #68737c; font-size: 12px; } strong { overflow-wrap: anywhere; }
+section { border-top: 1px solid #d7d3ca; padding: 13px 0; } .label { display: block; margin-bottom: 3px; color: #68737c; font-size: 12px; } strong { display: block; overflow-wrap: anywhere; } small { display: block; margin-top: 3px; color: #68737c; line-height: 1.45; }
 .error { margin-top: 10px; border-radius: 10px; padding: 10px; background: #f8dedc; color: #8a2926; }
 footer { display: flex; gap: 8px; margin-top: 18px; }
 button { flex: 1; border: 1px solid #aeb7bf; border-radius: 9px; background: #fff; color: #17212a; padding: 9px; font-weight: 650; cursor: pointer; }
 button:hover { background: #edf1f4; } button:focus-visible { outline: 3px solid #70a8df; outline-offset: 2px; } button.primary { border-color: #1262a3; background: #1262a3; color: #fff; } button.primary:hover { background: #0d4f86; }
 @media (prefers-color-scheme: dark) {
   :root { color: #edf2f5; background: #101418; }
-  p, .label { color: #a8b3bc; }
+  p, .label, small { color: #a8b3bc; }
   section { border-color: #303940; }
   button { border-color: #56636d; background: #20272d; color: #edf2f5; }
   button:hover { background: #29333b; }

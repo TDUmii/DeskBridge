@@ -12,11 +12,10 @@ public sealed record DeskBridgeSettings
 
 public sealed record AgentSettings
 {
-    public string Model { get; init; } = "gpt-5.6-luna";
-    public string ReasoningEffort { get; init; } = "low";
     public int MaximumIterations { get; init; } = 4;
-    public int MaximumToolCalls { get; init; } = 24;
-    public int MaximumOutputTokensPerTurn { get; init; } = 6_000;
+    public string Transport { get; init; } = "chatgpt-web-only";
+    public string RequiredModel { get; init; } = "GPT-5.6 Sol";
+    public string RequiredReasoning { get; init; } = "High";
 }
 
 public sealed record ActivityEntry(

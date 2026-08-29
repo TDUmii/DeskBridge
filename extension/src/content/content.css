@@ -13,3 +13,13 @@
 .deskbridge-image-wrap { position: relative; }
 .deskbridge-image-button { position: absolute; right: .75rem; bottom: .75rem; opacity: .92; }
 @media (prefers-reduced-motion: no-preference) { .deskbridge-button { transition: background-color 120ms ease-out, box-shadow 120ms ease-out; } }
+.deskbridge-agent-strip { position: fixed; top: .85rem; left: 50%; z-index: 2147483647; display: flex; align-items: center; gap: .7rem; width: min(42rem, calc(100vw - 2rem)); padding: .72rem .9rem; transform: translateX(-50%); border: 1px solid rgb(255 255 255 / 13%); border-radius: 14px; background: rgb(23 25 28 / 94%); color: #f4f5f6; box-shadow: 0 12px 40px rgb(0 0 0 / 32%); backdrop-filter: blur(16px); font: 500 13px/1.35 system-ui, sans-serif; }
+.deskbridge-agent-strip > span:last-child { display: grid; min-width: 0; }
+.deskbridge-agent-strip strong { font-size: 13px; letter-spacing: .01em; }
+.deskbridge-agent-strip small { overflow: hidden; color: #b9bec7; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.deskbridge-agent-mark { width: .7rem; height: .7rem; flex: 0 0 auto; border-radius: 999px; background: #7bd8b0; box-shadow: 0 0 0 5px rgb(123 216 176 / 12%); }
+.deskbridge-agent-strip[data-state="error"] .deskbridge-agent-mark { background: #ff8b83; box-shadow: 0 0 0 5px rgb(255 139 131 / 12%); }
+.deskbridge-agent-strip[data-state="success"] .deskbridge-agent-mark { background: #65dfa9; }
+@media (prefers-color-scheme: light) { .deskbridge-agent-strip { border-color: #d9dee5; background: rgb(255 255 255 / 96%); color: #18212a; box-shadow: 0 12px 36px rgb(20 32 45 / 15%); } .deskbridge-agent-strip small { color: #586270; } }
+@media (prefers-reduced-motion: no-preference) { .deskbridge-agent-strip[data-state="working"] .deskbridge-agent-mark { animation: deskbridge-pulse 1.8s ease-in-out infinite; } }
+@keyframes deskbridge-pulse { 50% { opacity: .5; transform: scale(.82); } }

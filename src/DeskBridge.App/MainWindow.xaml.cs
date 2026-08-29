@@ -70,15 +70,4 @@ public partial class MainWindow : Window
     private void CancelAgent_Click(object sender, RoutedEventArgs e) => _viewModel.CancelAgent();
     private void OpenAgentResult_Click(object sender, RoutedEventArgs e) => _viewModel.OpenAgentResult();
     private void OpenAgentRun_Click(object sender, RoutedEventArgs e) => _viewModel.OpenAgentRun();
-    private async void SaveApiKey_Click(object sender, RoutedEventArgs e)
-    {
-        try { await _viewModel.SaveApiKeyAsync(ApiKeyBox.Password); ApiKeyBox.Clear(); }
-        catch (Exception exception) { MessageBox.Show(this, exception.Message, "API key", MessageBoxButton.OK, MessageBoxImage.Warning); }
-    }
-    private async void TestApiKey_Click(object sender, RoutedEventArgs e)
-    {
-        try { await _viewModel.TestApiKeyAsync(); }
-        catch (Exception exception) { MessageBox.Show(this, exception.Message, "OpenAI connection", MessageBoxButton.OK, MessageBoxImage.Warning); }
-    }
-    private void RemoveApiKey_Click(object sender, RoutedEventArgs e) => _viewModel.RemoveApiKey();
 }

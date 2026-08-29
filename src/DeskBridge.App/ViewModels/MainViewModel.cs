@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Windows.Media.Imaging;
 using DeskBridge.App.Models;
@@ -17,20 +16,16 @@ public sealed class MainViewModel : INotifyPropertyChanged
 {
     private readonly SettingsStore _settingsStore = new();
     private readonly ActivityLogger _activityLogger = new();
-    private readonly IApiKeyStore _apiKeyStore = new WindowsApiKeyStore();
-    private readonly HttpClient _openAiHttpClient = new() { Timeout = TimeSpan.FromMinutes(10) };
+    private readonly BrowserAgentStore _browserAgentStore = new();
     private DeskBridgeSettings _settings = new();
     private string _workspace = "No workspace selected";
     private string _selectedTheme = "System";
     private string _agentSourcePath = string.Empty;
     private string _agentRequest = string.Empty;
-    private string _agentModel = "gpt-5.6-luna";
-    private string _agentReasoning = "low";
     private int _agentIterations = 4;
     private string _agentStatus = "Ready for a file task";
     private string _agentStatusDetail = "Choose a file inside the workspace and describe the finished result you want.";
     private bool _isAgentRunning;
-    private bool _apiKeyConfigured;
     private string? _agentResultPath;
     private string? _agentRunDirectory;
     private CancellationTokenSource? _agentCancellation;
@@ -44,21 +39,18 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<AgentStepRow> AgentSteps { get; } = [];
     public string[] Policies { get; } = ["Allowed", "Ask", "Blocked"];
     public string[] ThemeModes { get; } = ["System", "Light", "Dark"];
-    public string[] AgentModels { get; } = ["gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"];
-    public string[] AgentReasoningModes { get; } = ["none", "low", "medium", "high", "xhigh", "max"];
     public int[] AgentIterationOptions { get; } = [2, 3, 4, 5, 6, 8];
     public string SelectedTheme { get => _selectedTheme; set { _selectedTheme = value; OnPropertyChanged(); } }
     public string AgentSourcePath { get => _agentSourcePath; set { _agentSourcePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStartAgent)); } }
     public string AgentRequest { get => _agentRequest; set { _agentRequest = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStartAgent)); } }
-    public string AgentModel { get => _agentModel; set { _agentModel = value; OnPropertyChanged(); } }
-    public string AgentReasoning { get => _agentReasoning; set { _agentReasoning = value; OnPropertyChanged(); } }
+    public string AgentModel => "GPT-5.6 Sol";
+    public string AgentReasoning => "High · 3/3";
+    public string AgentTransport => "ChatGPT Web only · never Codex or API";
     public int AgentIterations { get => _agentIterations; set { _agentIterations = value; OnPropertyChanged(); } }
     public string AgentStatus { get => _agentStatus; private set { _agentStatus = value; OnPropertyChanged(); } }
     public string AgentStatusDetail { get => _agentStatusDetail; private set { _agentStatusDetail = value; OnPropertyChanged(); } }
     public bool IsAgentRunning { get => _isAgentRunning; private set { _isAgentRunning = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStartAgent)); } }
-    public bool ApiKeyConfigured { get => _apiKeyConfigured; private set { _apiKeyConfigured = value; OnPropertyChanged(); OnPropertyChanged(nameof(ApiKeyStatus)); OnPropertyChanged(nameof(CanStartAgent)); } }
-    public string ApiKeyStatus => ApiKeyConfigured ? "OpenAI API key is saved for this Windows account." : "No OpenAI API key is configured.";
-    public bool CanStartAgent => HasWorkspace && ApiKeyConfigured && !IsAgentRunning && File.Exists(AgentSourcePath) && !string.IsNullOrWhiteSpace(AgentRequest);
+    public bool CanStartAgent => HasWorkspace && !IsAgentRunning && File.Exists(AgentSourcePath) && !string.IsNullOrWhiteSpace(AgentRequest);
     public bool HasAgentResult => !string.IsNullOrWhiteSpace(_agentResultPath) && File.Exists(_agentResultPath);
     public bool HasAgentRun => !string.IsNullOrWhiteSpace(_agentRunDirectory) && Directory.Exists(_agentRunDirectory);
     public bool IsInitialized { get; private set; }
@@ -69,10 +61,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _settings = await _settingsStore.LoadAsync();
         Workspace = string.IsNullOrWhiteSpace(_settings.WorkspacePath) ? "No workspace selected" : _settings.WorkspacePath;
         SelectedTheme = ToThemeDisplay(_settings.ThemeMode);
-        AgentModel = _settings.Agent.Model;
-        AgentReasoning = _settings.Agent.ReasoningEffort;
         AgentIterations = _settings.Agent.MaximumIterations;
-        ApiKeyConfigured = _apiKeyStore.HasKey;
         BuildPermissions();
         BuildSkillIntegrations();
         await RefreshAsync();
@@ -88,36 +77,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
         await RefreshAssetsAsync();
     }
 
-    public async Task SaveApiKeyAsync(string apiKey)
-    {
-        await _apiKeyStore.SaveAsync(apiKey);
-        ApiKeyConfigured = true;
-        AgentStatus = "API key saved";
-        AgentStatusDetail = "The key is encrypted for the current Windows account and is never written to settings or logs.";
-    }
-
-    public async Task TestApiKeyAsync()
-    {
-        _ = await _apiKeyStore.LoadAsync() ?? throw new InvalidOperationException("Save an OpenAI API key first.");
-        var client = new OpenAIResponsesClient(_openAiHttpClient, _apiKeyStore);
-        await client.TestConnectionAsync(AgentModel, CancellationToken.None);
-        AgentStatus = "OpenAI connection verified";
-        AgentStatusDetail = "DeskBridge can reach the Responses API with the saved key.";
-    }
-
-    public void RemoveApiKey()
-    {
-        _apiKeyStore.Delete();
-        ApiKeyConfigured = _apiKeyStore.HasKey;
-        AgentStatus = "Saved API key removed";
-        AgentStatusDetail = ApiKeyConfigured ? "OPENAI_API_KEY is still provided by the environment." : "Add a key before starting an agent run.";
-    }
-
     public async Task<AgentRunResult?> StartAgentAsync()
     {
         if (!CanStartAgent) return null;
         await SaveAgentSettingsAsync();
-        _ = await _apiKeyStore.LoadAsync() ?? throw new InvalidOperationException("Save an OpenAI API key first.");
         _agentCancellation = new CancellationTokenSource();
         IsAgentRunning = true;
         _agentResultPath = null;
@@ -126,7 +89,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(HasAgentRun));
         AgentSteps.Clear();
         AgentStatus = "Starting agent";
-        AgentStatusDetail = "Preparing the local inspection and encrypted API session.";
+        AgentStatusDetail = "Opening a dedicated ChatGPT Web tab and waiting for the DeskBridge extension.";
         var progress = new Progress<AgentProgress>(item =>
         {
             AgentStatus = item.Stage;
@@ -136,15 +99,19 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         try
         {
-            var client = new OpenAIResponsesClient(_openAiHttpClient, _apiKeyStore);
-            var service = new AgentRunService(client);
-            var options = new AgentRunOptions(AgentModel, AgentReasoning, AgentIterations,
-                _settings.Agent.MaximumToolCalls, _settings.Agent.MaximumOutputTokensPerTurn);
+            var service = new AgentRunService(_browserAgentStore);
+            var options = new AgentRunOptions(AgentIterations);
             var result = await service.RunAsync(new AgentRunRequest(_settings.WorkspacePath!, AgentSourcePath, AgentRequest, options), progress, _agentCancellation.Token);
             _agentResultPath = result.BestArtifactPath;
             _agentRunDirectory = result.RunDirectory;
-            AgentStatus = result.Success ? "Finished" : "Best candidate preserved";
-            AgentStatusDetail = $"{result.Summary}  Token usage: {result.Usage.TotalTokens:N0}.";
+            AgentStatus = result.Status switch
+            {
+                "completed" => "Finished",
+                "cancelled" => "Cancelled",
+                "failed" => "Needs attention",
+                _ => "Best candidate preserved"
+            };
+            AgentStatusDetail = result.Summary;
             OnPropertyChanged(nameof(HasAgentResult));
             OnPropertyChanged(nameof(HasAgentRun));
             return result;
@@ -202,7 +169,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private async Task SaveAgentSettingsAsync()
     {
-        _settings = _settings with { Agent = _settings.Agent with { Model = AgentModel, ReasoningEffort = AgentReasoning, MaximumIterations = AgentIterations } };
+        _settings = _settings with { Agent = _settings.Agent with { MaximumIterations = AgentIterations, Transport = "chatgpt-web-only", RequiredModel = "GPT-5.6 Sol", RequiredReasoning = "High" } };
         await _settingsStore.SaveAsync(_settings);
     }
 
