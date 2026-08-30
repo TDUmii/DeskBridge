@@ -6,11 +6,11 @@ The Agent is ChatGPT Web-only. It never falls back to Codex, a Codex workspace/t
 
 ## Requirements
 
-- Windows 10 or Windows 11 (x64 package target)
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- Node.js 20 or newer and npm (required by the optional document-to-Markdown adapter)
+- Windows 10 or Windows 11 (x64)
 - Google Chrome
-- Git
+- A signed-in ChatGPT Web account with GPT-5.6 Sol
+
+The release installer includes the required .NET runtime. Git, Node.js, an API key, and administrator access are not required for normal use. Developers building from source need the .NET 8 SDK, Git, Node.js 20 or newer, and npm.
 
 ## Repository
 
@@ -65,12 +65,16 @@ The generated manifest contains the local absolute host path and is written to `
 
 ## Install the Windows release
 
-1. Download and extract `DeskBridge-v1.2.0-win-x64.zip` to a stable folder.
-2. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted `extension` folder.
-3. Allow DeskBridge's protected in-tab input permission when Chrome shows it. This is used only in the marked ChatGPT Web agent tab and is detached immediately after each prompt is sent.
-4. Double-click `Install-DeskBridge.cmd`. It registers the fixed extension ID and opens the app.
+1. Download `DeskBridge-Setup-v1.2.1.exe`.
+2. Double-click it and choose **Install DeskBridge**.
+3. The installer copies the app to `%LOCALAPPDATA%\Programs\DeskBridge`, registers the native host, creates Start menu and desktop shortcuts, opens DeskBridge, opens `chrome://extensions`, and copies the installed extension path to the clipboard.
+4. In Chrome, enable **Developer mode**, choose **Load unpacked**, paste the copied path, and approve the extension. Allow the protected in-tab input permission if Chrome requests it.
 
-After the first setup, run `DeskBridge.App.exe` normally. The package is self-contained for Windows x64: no separate .NET installation or API key is required. Keep the extracted folder in place because Chrome points to its native host. Double-click `Uninstall-DeskBridge.cmd` to remove only the native registration.
+[Chrome does not permit ordinary Windows software to silently install an unpacked extension](https://developer.chrome.com/docs/extensions/how-to/distribute/install-extensions). The one Chrome confirmation is therefore intentional, visible, and required by the browser's security model. After that confirmation, DeskBridge runs from its normal shortcut. The installer is self-contained and does not require a separate .NET installation or API key.
+
+The current community release is not digitally signed. Windows can therefore show **Unknown publisher** or a SmartScreen confirmation before setup opens. A future trusted code-signing certificate can remove that extra trust prompt; the installer does not change Windows security settings or bypass it.
+
+To uninstall, open Windows **Installed apps**, find **DeskBridge**, and choose **Uninstall**. User workspaces and accepted results are not removed.
 
 ## Create from an idea
 

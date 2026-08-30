@@ -20,11 +20,13 @@ The Agent is ChatGPT Web-only. It never switches to Codex, creates or uses a Cod
 
 ## Operating context
 
-The user signs in to ChatGPT normally in Chrome, installs the DeskBridge extension/native host, selects one local workspace, chooses create-new or improve-file mode, then describes the finished outcome. Create-new uploads no workspace files or local paths. Improve-file uploads only the explicit source and keeps the original unchanged. Accepted output appears in `DeskBridge Results`; every candidate and inspection record stays in a workspace-local evidence directory.
+The user runs one self-contained Windows installer, completes Chrome's required visible extension confirmation, signs in to ChatGPT normally, selects one local workspace, chooses create-new or improve-file mode, then describes the finished outcome. Create-new uploads no workspace files or local paths. Improve-file uploads only the explicit source and keeps the original unchanged. Accepted output appears in `DeskBridge Results`; every candidate and inspection record stays in a workspace-local evidence directory.
 
 ## Capabilities and constraints
 
 - Windows 10/11, Google Chrome, and a signed-in ChatGPT Web account with GPT-5.6 Sol are required.
+- The installer requires no administrator access, installs for the current Windows user, registers uninstall metadata, and preserves user workspaces during upgrades or removal.
+- Chrome requires one visible confirmation to load the unpacked companion extension; DeskBridge never edits browser profile data to bypass that boundary.
 - Production communication uses Chrome Native Messaging only; DeskBridge exposes no local HTTP server.
 - Only a tab opened with the DeskBridge agent marker may claim autonomous jobs; normal ChatGPT tabs are not polled for work.
 - Model and reasoning are locked to GPT-5.6 Sol and High (3/3) and verified before sending.
