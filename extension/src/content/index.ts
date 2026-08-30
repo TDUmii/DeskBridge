@@ -196,7 +196,7 @@ async function pollWebAgent(): Promise<void> {
       return;
     }
     const claim = response.data as WebAgentClaim | null;
-    if (claim) await executeWebAgent(claim);
+    if (claim?.runId) await executeWebAgent(claim);
   } finally {
     webAgentBusy = false;
   }
@@ -223,10 +223,32 @@ function scheduleWebAgentPoll(): void {
   void pollWebAgent().catch(handleWebAgentPollError);
 }
 
+async function ensureTrustedInputPermission(): Promise<boolean> {
+  if (await chrome.permissions.contains({ permissions: ["debugger"] })) return true;
+  const attempted = sessionStorage.getItem("deskbridge-debugger-reload-attempted") === "1";
+  if (attempted) {
+    webAgent.showStatus("DeskBridge · Chrome permission required", "Reload DeskBridge once in chrome://extensions so Chrome can enable protected in-tab input.", "error");
+    return false;
+  }
+  sessionStorage.setItem("deskbridge-debugger-reload-attempted", "1");
+  const script = document.createElement("script");
+  script.type = "module";
+  script.src = chrome.runtime.getURL("page/bridge.js");
+  script.addEventListener("load", () => {
+    document.dispatchEvent(new CustomEvent("deskbridge-reload-page"));
+    window.setTimeout(() => chrome.runtime.reload(), 100);
+  }, { once: true });
+  document.documentElement.append(script);
+  return false;
+}
+
 new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
 scan();
 if (webAgent.isDedicatedAgentTab()) {
   webAgent.showStatus("DeskBridge · ChatGPT Web only", "Waiting for a local job. GPT-5.6 Sol · High is mandatory.");
-  scheduleWebAgentPoll();
-  webAgentPollTimer = window.setInterval(scheduleWebAgentPoll, 2_000);
+  void ensureTrustedInputPermission().then(ready => {
+    if (!ready) return;
+    scheduleWebAgentPoll();
+    webAgentPollTimer = window.setInterval(scheduleWebAgentPoll, 2_000);
+  });
 }

@@ -6,6 +6,7 @@ await build({
   entryPoints: {
     "background/index": "src/background/index.ts",
     "content/index": "src/content/index.ts",
+    "page/bridge": "src/page/bridge.ts",
     "popup/popup": "src/popup/popup.ts"
   },
   outdir: "dist",

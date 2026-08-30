@@ -65,9 +65,10 @@ The generated manifest contains the local absolute host path and is written to `
 
 ## Install the Windows release
 
-1. Download and extract `DeskBridge-v1.1.2-win-x64.zip` to a stable folder.
+1. Download and extract `DeskBridge-v1.1.4-win-x64.zip` to a stable folder.
 2. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted `extension` folder.
-3. Double-click `Install-DeskBridge.cmd`. It registers the fixed extension ID and opens the app.
+3. Allow DeskBridge's protected in-tab input permission when Chrome shows it. This is used only in the marked ChatGPT Web agent tab and is detached immediately after each prompt is sent.
+4. Double-click `Install-DeskBridge.cmd`. It registers the fixed extension ID and opens the app.
 
 After the first setup, run `DeskBridge.App.exe` normally. The package is self-contained for Windows x64: no separate .NET installation or API key is required. Keep the extracted folder in place because Chrome points to its native host. Double-click `Uninstall-DeskBridge.cmd` to remove only the native registration.
 

@@ -69,7 +69,7 @@ function request(action: string, args: Record<string, unknown>): DeskBridgeReque
 chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
   if (!message || typeof message !== "object") return false;
   const envelope = message as { type?: string; request?: DeskBridgeRequest; runId?: string; offset?: number; maxBytes?: number;
-    stage?: string; message?: string; chatUrl?: string; downloadedPath?: string; assessment?: unknown; expectedFilename?: string; token?: string };
+    stage?: string; message?: string; chatUrl?: string; downloadedPath?: string; assessment?: unknown; expectedFilename?: string; token?: string; text?: string };
   if (envelope.type === "disconnect") {
     port?.disconnect(); port = null; sendResponse({ success: true }); return false;
   }
@@ -86,6 +86,16 @@ chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) =
   }
   if (envelope.type === "webAgentFail") {
     send(request("web_agent_fail", { runId: envelope.runId, message: envelope.message })).then(sendResponse); return true;
+  }
+  if (envelope.type === "webAgentTrustedSubmit") {
+    if (!envelope.text || _sender.tab?.id === undefined) {
+      sendResponse({ success: false, message: "The ChatGPT Web tab or prompt was unavailable." });
+      return false;
+    }
+    trustedSubmit(_sender.tab.id, envelope.text)
+      .then(() => sendResponse({ success: true }))
+      .catch(error => sendResponse({ success: false, message: error instanceof Error ? error.message : String(error) }));
+    return true;
   }
   if (envelope.type === "armDownload" && envelope.expectedFilename) {
     const token = crypto.randomUUID();
@@ -106,3 +116,26 @@ chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) =
   }
   return false;
 });
+
+async function trustedSubmit(tabId: number, text: string): Promise<void> {
+  const target: chrome.debugger.Debuggee = { tabId };
+  await chrome.debugger.attach(target, "1.3");
+  try {
+    await chrome.debugger.sendCommand(target, "Runtime.evaluate", {
+      expression: `(() => { const box = document.querySelector('#prompt-textarea'); if (!box) throw new Error('ChatGPT Web textbox was not found.'); box.focus(); const range = document.createRange(); range.selectNodeContents(box); const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range); })()`
+    });
+    await chrome.debugger.sendCommand(target, "Input.insertText", { text });
+    await new Promise(resolve => self.setTimeout(resolve, 250));
+    const evaluation = await chrome.debugger.sendCommand(target, "Runtime.evaluate", {
+      expression: `(() => { const button = document.querySelector('[data-testid="send-button"]:not([disabled])'); if (!button) throw new Error('ChatGPT Web Send button was not enabled.'); const rect = button.getBoundingClientRect(); return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; })()`,
+      returnByValue: true
+    }) as { result?: { value?: { x?: number; y?: number }; description?: string } };
+    const x = evaluation.result?.value?.x;
+    const y = evaluation.result?.value?.y;
+    if (typeof x !== "number" || typeof y !== "number") throw new Error(evaluation.result?.description ?? "ChatGPT Web Send button coordinates were unavailable.");
+    await chrome.debugger.sendCommand(target, "Input.dispatchMouseEvent", { type: "mousePressed", x, y, button: "left", clickCount: 1 });
+    await chrome.debugger.sendCommand(target, "Input.dispatchMouseEvent", { type: "mouseReleased", x, y, button: "left", clickCount: 1 });
+  } finally {
+    await chrome.debugger.detach(target).catch(() => undefined);
+  }
+}
