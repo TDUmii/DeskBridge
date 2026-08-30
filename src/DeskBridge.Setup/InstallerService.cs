@@ -29,8 +29,9 @@ internal sealed class InstallerService
     private InstallResult Install(IProgress<InstallProgress> progress, CancellationToken cancellationToken)
     {
         string stagingRoot = Path.Combine(Path.GetTempPath(), $"DeskBridge-install-{Environment.ProcessId}-{Guid.NewGuid():N}");
-        string pendingRoot = _installRoot + ".installing";
-        string previousRoot = _installRoot + ".previous";
+        string operationId = Guid.NewGuid().ToString("N");
+        string pendingRoot = _installRoot + $".installing-{operationId}";
+        string previousRoot = _installRoot + $".previous-{operationId}";
         EnsureChildPath(stagingRoot, Path.GetTempPath());
         try
         {
@@ -46,8 +47,6 @@ internal sealed class InstallerService
             EnsureChildPath(_installRoot, programsRoot);
             EnsureChildPath(pendingRoot, programsRoot);
             EnsureChildPath(previousRoot, programsRoot);
-            if (Directory.Exists(pendingRoot)) Directory.Delete(pendingRoot, true);
-            if (Directory.Exists(previousRoot)) Directory.Delete(previousRoot, true);
             CopyDirectory(stagingRoot, pendingRoot, cancellationToken);
 
             bool previousInstallMoved = false;
@@ -64,14 +63,25 @@ internal sealed class InstallerService
                 RegisterNativeHost();
                 RegisterInstalledApplication();
                 File.WriteAllText(Path.Combine(_installRoot, "installed-version.txt"), ProductVersion, new UTF8Encoding(false));
-                if (Directory.Exists(previousRoot)) Directory.Delete(previousRoot, true);
             }
-            catch
+            catch (Exception installError)
             {
-                if (Directory.Exists(_installRoot)) Directory.Delete(_installRoot, true);
-                if (previousInstallMoved && Directory.Exists(previousRoot)) Directory.Move(previousRoot, _installRoot);
+                try
+                {
+                    if (Directory.Exists(_installRoot)) Directory.Delete(_installRoot, true);
+                    if (previousInstallMoved && Directory.Exists(previousRoot)) Directory.Move(previousRoot, _installRoot);
+                }
+                catch (Exception restoreError)
+                {
+                    throw new AggregateException(
+                        "DeskBridge could not finish the upgrade or restore the previous installation automatically.",
+                        installError,
+                        restoreError);
+                }
                 throw;
             }
+
+            TryDeleteDirectory(previousRoot);
 
             string extensionPath = Path.Combine(_installRoot, "extension");
             progress.Report(new("Finalizing the installed application...", 92));
@@ -83,7 +93,7 @@ internal sealed class InstallerService
             try
             {
                 if (Directory.Exists(stagingRoot)) Directory.Delete(stagingRoot, true);
-                if (Directory.Exists(pendingRoot)) Directory.Delete(pendingRoot, true);
+                TryDeleteDirectory(pendingRoot);
             }
             catch
             {
@@ -142,6 +152,41 @@ internal sealed class InstallerService
                     }
                 }
             }
+        }
+
+        foreach (string processName in new[] { "DeskBridge.App", "DeskBridge.Host" })
+        {
+            if (Process.GetProcessesByName(processName).Any(process =>
+            {
+                using (process)
+                {
+                    try
+                    {
+                        string? path = process.MainModule?.FileName;
+                        return path is not null && path.StartsWith(resolvedRoot, StringComparison.OrdinalIgnoreCase);
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+            }))
+            {
+                throw new IOException("Close DeskBridge and try the installer again.");
+            }
+        }
+    }
+
+    private static void TryDeleteDirectory(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path)) Directory.Delete(path, true);
+        }
+        catch
+        {
+            // A prior version can remain briefly if Explorer or security software still holds a handle.
+            // It is outside the active installation and can be removed by a later maintenance pass.
         }
     }
 
