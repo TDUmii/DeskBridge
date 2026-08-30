@@ -2,7 +2,7 @@
 
 ## Direction
 
-DeskBridge uses a focused Windows operations-console language with its own bridge-and-checkpoint identity. The mark shows a source document entering a blue route, passing a cyan verification point, and becoming a teal accepted output. Light mode uses a cool gray canvas; dark mode uses layered graphite surfaces rather than pure black. Electric blue marks primary actions, cyan marks verification, teal marks connected or successful states, amber marks waiting, and pink-red is reserved for failure.
+DeskBridge uses a focused Windows operations-console language with its own bridge-and-checkpoint identity. The mark shows a source document entering a slate-blue route, passing a steel-blue verification point, and becoming a jade accepted output. Light mode uses a cool gray canvas; dark mode uses layered graphite surfaces rather than pure black. Muted slate blue marks primary actions, steel blue marks verification, jade marks connected or successful states, amber marks waiting, and muted rose is reserved for failure. Neon colors and glow effects are excluded.
 
 ## Mode
 
@@ -16,7 +16,7 @@ Use Segoe UI Variable or Segoe UI in WPF and the Chrome/system stack in the exte
 
 The Agent tab presents one linear job: choose create-new or improve-file, provide the requested outcome, review the locked ChatGPT Web transport and GPT-5.6 Sol High 3/3 indicators, then start or cancel and follow status evidence. Create-new visibly states that the workspace is an output boundary and no files are uploaded. Numbered markers make the setup order scannable, while the current-run card and timeline remain visible beside it at the default window size. The extension uses the same icon and color tokens, plus a compact floating status strip only on the dedicated agent tab; it must not obscure the composer.
 
-The installer is one focused dark-mode surface in the same graphite, blue, cyan, and teal system. The left side explains the one-button installation and its live progress. The right side states the privacy boundary and honestly separates automatic Windows setup from Chrome's required visible extension confirmation. The primary action remains in the lower-right corner and becomes a close action only after a durable success or failure state.
+The installer is one focused dark-mode surface in the same graphite, slate-blue, steel-blue, and jade system. The left side explains the one-button installation and its live progress. The right side states the privacy boundary and honestly separates automatic Windows setup from Chrome's required visible extension confirmation. The primary action remains in the lower-right corner and becomes a close action only after a durable success or failure state.
 
 ## Components and states
 

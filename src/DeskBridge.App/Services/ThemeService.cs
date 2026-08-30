@@ -14,7 +14,12 @@ public sealed class ThemeService : IDisposable
 
     public void Apply(string? mode)
     {
-        _mode = mode?.ToLowerInvariant() is "light" or "dark" ? mode.ToLowerInvariant() : "system";
+        _mode = mode?.ToLowerInvariant() switch
+        {
+            "light" or "sáng" => "light",
+            "dark" or "tối" => "dark",
+            _ => "system"
+        };
         var dark = _mode == "dark" || (_mode == "system" && SystemUsesDarkMode());
         foreach (var (key, color) in dark ? ThemePalette.Dark : ThemePalette.Light)
             Application.Current.Resources[key] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
@@ -54,10 +59,11 @@ internal static class ThemePalette
         ["FieldBrush"] = "#FFFFFF", ["InkBrush"] = "#142033", ["MutedBrush"] = "#5B687B",
         ["LineBrush"] = "#D8E0EA", ["ControlBrush"] = "#FFFFFF", ["ControlHoverBrush"] = "#EAF1F8",
         ["ControlBorderBrush"] = "#AEBBCB", ["HeaderBrush"] = "#101722", ["HeaderInkBrush"] = "#F7FAFF",
-        ["HeaderMutedBrush"] = "#AEBBCB", ["PrimaryBrush"] = "#147DCC", ["PrimaryHoverBrush"] = "#0B68B0",
-        ["AccentSoftBrush"] = "#DDF3FF", ["FocusBrush"] = "#4CC9F0", ["SuccessBrush"] = "#07866F",
-        ["SuccessSurfaceBrush"] = "#D9F4EC", ["DangerBrush"] = "#A33A43", ["DangerSurfaceBrush"] = "#FCE5E7",
-        ["WarningBrush"] = "#795A09", ["WarningSurfaceBrush"] = "#FAEDC8"
+        ["HeaderMutedBrush"] = "#AEBBCB", ["PrimaryBrush"] = "#315F8C", ["PrimaryHoverBrush"] = "#274C70",
+        ["AccentSoftBrush"] = "#E3EBF3", ["FocusBrush"] = "#5C7894", ["SuccessBrush"] = "#2F6F62",
+        ["SuccessSurfaceBrush"] = "#E0EEE9", ["DangerBrush"] = "#A33A43", ["DangerSurfaceBrush"] = "#FCE5E7",
+        ["WarningBrush"] = "#795A09", ["WarningSurfaceBrush"] = "#FAEDC8", ["ScrollTrackBrush"] = "#E6EBF0",
+        ["ScrollThumbBrush"] = "#8796A5", ["ScrollThumbHoverBrush"] = "#647789"
     };
 
     public static IReadOnlyDictionary<string, string> Dark { get; } = new Dictionary<string, string>
@@ -66,9 +72,10 @@ internal static class ThemePalette
         ["FieldBrush"] = "#101722", ["InkBrush"] = "#F1F6FC", ["MutedBrush"] = "#A8B5C5",
         ["LineBrush"] = "#2D3948", ["ControlBrush"] = "#1C2531", ["ControlHoverBrush"] = "#263342",
         ["ControlBorderBrush"] = "#4B5B6D", ["HeaderBrush"] = "#090D13", ["HeaderInkBrush"] = "#F7FAFF",
-        ["HeaderMutedBrush"] = "#AAB8C8", ["PrimaryBrush"] = "#168FE0", ["PrimaryHoverBrush"] = "#31A6EF",
-        ["AccentSoftBrush"] = "#15364A", ["FocusBrush"] = "#56D7F4", ["SuccessBrush"] = "#43D5B3",
-        ["SuccessSurfaceBrush"] = "#123A34", ["DangerBrush"] = "#FF9AA4", ["DangerSurfaceBrush"] = "#47262C",
-        ["WarningBrush"] = "#F1CF72", ["WarningSurfaceBrush"] = "#41371D"
+        ["HeaderMutedBrush"] = "#AAB8C8", ["PrimaryBrush"] = "#4F7EAA", ["PrimaryHoverBrush"] = "#628FB7",
+        ["AccentSoftBrush"] = "#223243", ["FocusBrush"] = "#7B96AF", ["SuccessBrush"] = "#69A497",
+        ["SuccessSurfaceBrush"] = "#1D3833", ["DangerBrush"] = "#D8848B", ["DangerSurfaceBrush"] = "#43292E",
+        ["WarningBrush"] = "#D1AB67", ["WarningSurfaceBrush"] = "#3B321F", ["ScrollTrackBrush"] = "#111923",
+        ["ScrollThumbBrush"] = "#526273", ["ScrollThumbHoverBrush"] = "#718396"
     };
 }

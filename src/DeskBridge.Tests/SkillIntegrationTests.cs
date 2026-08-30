@@ -13,6 +13,7 @@ public sealed class SkillIntegrationTests
         var settings = new DeskBridgeSettings
         {
             ThemeMode = "dark",
+            LanguageMode = "vi",
             SkillIntegrations = new Dictionary<string, bool> { [SkillCatalog.Impeccable] = true }
         };
         await workspace.Context.Settings.SaveAsync(settings);
@@ -20,6 +21,7 @@ public sealed class SkillIntegrationTests
         var loaded = await workspace.Context.Settings.LoadAsync();
 
         Assert.Equal("dark", loaded.ThemeMode);
+        Assert.Equal("vi", loaded.LanguageMode);
         Assert.True(loaded.SkillIntegrations[SkillCatalog.Impeccable]);
     }
 

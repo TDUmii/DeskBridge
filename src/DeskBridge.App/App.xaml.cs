@@ -11,6 +11,13 @@ namespace DeskBridge.App;
 public partial class App : Application
 {
     public ThemeService ThemeService { get; } = new();
+    public LocalizationService LocalizationService { get; } = new();
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        LocalizationService.Apply("English");
+        base.OnStartup(e);
+    }
 
     protected override void OnExit(ExitEventArgs e)
     {

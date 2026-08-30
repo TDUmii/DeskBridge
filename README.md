@@ -61,11 +61,13 @@ DeskBridge/
 
 8. Reload the extension. Its popup should show **Connected** and the selected workspace. Return to Agent, choose **Create new** for an idea-only task or **Improve a file** for one explicit upload, describe the finished result, and start the run. Accepted output appears in `DeskBridge Results`; an original source is retained unchanged.
 
+Use **Settings > Language** to switch the Windows app between English and Tiếng Việt. The extension popup has the same language switch and remembers its own choice. Both light and dark modes use the same muted slate-blue and jade palette with matching scrollbars.
+
 The generated manifest contains the local absolute host path and is written to `%LOCALAPPDATA%\DeskBridge\native-host\com.deskbridge.host.json`; it is intentionally not committed.
 
 ## Install the Windows release
 
-1. Download `DeskBridge-Setup-v1.2.1.exe`.
+1. Download `DeskBridge-Setup-v1.3.0.exe`.
 2. Double-click it and choose **Install DeskBridge**.
 3. The installer copies the app to `%LOCALAPPDATA%\Programs\DeskBridge`, registers the native host, creates Start menu and desktop shortcuts, opens DeskBridge, opens `chrome://extensions`, and copies the installed extension path to the clipboard.
 4. In Chrome, enable **Developer mode**, choose **Load unpacked**, paste the copied path, and approve the extension. Allow the protected in-tab input permission if Chrome requests it.

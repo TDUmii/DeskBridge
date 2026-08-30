@@ -17,16 +17,19 @@
         <SolidColorBrush x:Key="HeaderBrush" Color="#101722"/>
         <SolidColorBrush x:Key="HeaderInkBrush" Color="#F7FAFF"/>
         <SolidColorBrush x:Key="HeaderMutedBrush" Color="#AEBBCB"/>
-        <SolidColorBrush x:Key="PrimaryBrush" Color="#147DCC"/>
-        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#0B68B0"/>
-        <SolidColorBrush x:Key="AccentSoftBrush" Color="#DDF3FF"/>
-        <SolidColorBrush x:Key="FocusBrush" Color="#4CC9F0"/>
-        <SolidColorBrush x:Key="SuccessBrush" Color="#07866F"/>
-        <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#D9F4EC"/>
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#315F8C"/>
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#274C70"/>
+        <SolidColorBrush x:Key="AccentSoftBrush" Color="#E3EBF3"/>
+        <SolidColorBrush x:Key="FocusBrush" Color="#5C7894"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#2F6F62"/>
+        <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#E0EEE9"/>
         <SolidColorBrush x:Key="DangerBrush" Color="#A33A43"/>
         <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#FCE5E7"/>
         <SolidColorBrush x:Key="WarningBrush" Color="#795A09"/>
         <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FAEDC8"/>
+        <SolidColorBrush x:Key="ScrollTrackBrush" Color="#E6EBF0"/>
+        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#8796A5"/>
+        <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#647789"/>
 
         <Style TargetType="Window">
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI"/>
@@ -61,6 +64,15 @@
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox"><Grid><Border x:Name="ComboChrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="10"><Grid><ContentPresenter Content="{TemplateBinding SelectionBoxItem}" TextElement.Foreground="{DynamicResource InkBrush}" VerticalAlignment="Center" Margin="11,0,34,0"/><TextBlock Text="⌄" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,4" FontSize="16"/><ToggleButton Background="Transparent" BorderThickness="0" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" Focusable="False"><ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border Background="Transparent"/></ControlTemplate></ToggleButton.Template></ToggleButton></Grid></Border><Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade"><Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="4" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="300" Margin="0,5,0,0"><ScrollViewer><ItemsPresenter/></ScrollViewer></Border></Popup></Grid><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ComboChrome" Property="Background" Value="{DynamicResource ControlHoverBrush}"/></Trigger><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="ComboChrome" Property="BorderBrush" Value="{DynamicResource FocusBrush}"/><Setter TargetName="ComboChrome" Property="BorderThickness" Value="2"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="ComboChrome" Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
         <Style TargetType="CheckBox"><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="VerticalAlignment" Value="Center"/></Style>
+        <Style x:Key="ScrollThumbStyle" TargetType="Thumb">
+            <Setter Property="Background" Value="{DynamicResource ScrollThumbBrush}"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Thumb"><Border x:Name="ThumbChrome" Background="{TemplateBinding Background}" CornerRadius="5" Margin="2"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ThumbChrome" Property="Background" Value="{DynamicResource ScrollThumbHoverBrush}"/></Trigger><Trigger Property="IsDragging" Value="True"><Setter TargetName="ThumbChrome" Property="Background" Value="{DynamicResource PrimaryBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="12"/><Setter Property="Background" Value="{DynamicResource ScrollTrackBrush}"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar"><Border Background="{TemplateBinding Background}" CornerRadius="6"><Track x:Name="PART_Track" IsDirectionReversed="True"><Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/></Track.DecreaseRepeatButton><Track.Thumb><Thumb Style="{StaticResource ScrollThumbStyle}" MinHeight="34"/></Track.Thumb><Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/></Track.IncreaseRepeatButton></Track></Border></ControlTemplate></Setter.Value></Setter>
+            <Style.Triggers><Trigger Property="Orientation" Value="Horizontal"><Setter Property="Width" Value="Auto"/><Setter Property="Height" Value="12"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar"><Border Background="{TemplateBinding Background}" CornerRadius="6"><Track x:Name="PART_Track"><Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageLeftCommand" Opacity="0" Focusable="False"/></Track.DecreaseRepeatButton><Track.Thumb><Thumb Style="{StaticResource ScrollThumbStyle}" MinWidth="34"/></Track.Thumb><Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageRightCommand" Opacity="0" Focusable="False"/></Track.IncreaseRepeatButton></Track></Border></ControlTemplate></Setter.Value></Setter></Trigger></Style.Triggers>
+        </Style>
         <Style x:Key="AgentModeCard" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
             <Setter Property="Background" Value="{DynamicResource PanelRaisedBrush}"/>

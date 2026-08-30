@@ -5,6 +5,7 @@ public sealed record DeskBridgeSettings
     public string? WorkspacePath { get; init; }
     public bool WorkspaceMode { get; init; } = true;
     public string ThemeMode { get; init; } = "system";
+    public string LanguageMode { get; init; } = "en";
     public AgentSettings Agent { get; init; } = new();
     public Dictionary<string, bool> SkillIntegrations { get; init; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> Permissions { get; init; } = new(StringComparer.OrdinalIgnoreCase);

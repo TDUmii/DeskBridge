@@ -2,12 +2,15 @@ import { ChatGptDomAdapter } from "./ChatGptDomAdapter.js";
 import { ChatGptImageAdapter } from "./ChatGptImageAdapter.js";
 import { ChatGptWebAgentAdapter } from "./ChatGptWebAgentAdapter.js";
 import { CandidateAssessment, DeskBridgeRequest, DeskBridgeResponse, WebAgentClaim, newId, parseRequest } from "../shared/protocol.js";
+import { Language, getLanguage, t } from "../shared/i18n.js";
 
 const dom = new ChatGptDomAdapter();
 const images = new ChatGptImageAdapter();
 const webAgent = new ChatGptWebAgentAdapter();
 let webAgentBusy = false;
 let webAgentPollTimer: number | null = null;
+let language: Language = "en";
+const l = (key: string): string => t(language, key);
 
 interface CandidateResult {
   accepted: boolean;
@@ -43,27 +46,27 @@ function enhanceActionBlocks(): void {
   for (const code of dom.findDeskBridgeBlocks()) {
     const toolbar = document.createElement("div");
     toolbar.className = "deskbridge-toolbar";
-    const runButton = button("Run with DeskBridge", "deskbridge-button deskbridge-primary");
+    const runButton = button(l("run"), "deskbridge-button deskbridge-primary");
     const result = resultPanel();
     runButton.addEventListener("click", async () => {
       result.hidden = false;
       result.dataset.state = "loading";
-      result.textContent = "Waiting for DeskBridge…";
+      result.textContent = l("waiting");
       runButton.disabled = true;
       try {
         const response = await run(parseRequest(dom.codeText(code)));
         result.dataset.state = response.success ? "success" : "error";
         result.textContent = response.success
-          ? `Success\n${JSON.stringify(response.data, null, 2)}`
-          : `${response.error?.code ?? "ERROR"}: ${response.error?.message ?? "Action failed."}`;
+          ? `${l("success")}\n${JSON.stringify(response.data, null, 2)}`
+          : `${response.error?.code ?? "ERROR"}: ${response.error?.message ?? l("actionFailed")}`;
         if (response.success) {
-          const copy = button("Copy result");
+          const copy = button(l("copyResult"));
           copy.addEventListener("click", () => navigator.clipboard.writeText(JSON.stringify(response.data, null, 2)));
           toolbar.append(copy);
         }
       } catch (error) {
         result.dataset.state = "error";
-        result.textContent = error instanceof Error ? error.message : "Invalid DeskBridge action.";
+        result.textContent = error instanceof Error ? error.message : l("invalidAction");
       } finally {
         runButton.disabled = false;
       }
@@ -77,13 +80,13 @@ function enhanceNormalCodeBlocks(): void {
   for (const code of dom.findNormalCodeBlocks()) {
     const toolbar = document.createElement("div");
     toolbar.className = "deskbridge-toolbar deskbridge-save-toolbar";
-    const save = button("Save file");
+    const save = button(l("saveFile"));
     save.addEventListener("click", async () => {
-      const path = window.prompt("Absolute path inside the current DeskBridge workspace:");
+      const path = window.prompt(l("pathPrompt"));
       if (!path) return;
       const response = await run({ version: 1, id: newId("save"), action: "create_file",
         arguments: { path, content: dom.codeText(code) } });
-      window.alert(response.success ? `Saved to ${path}` : `${response.error?.code}: ${response.error?.message}`);
+      window.alert(response.success ? `${l("savedTo")} ${path}` : `${response.error?.code}: ${response.error?.message}`);
     });
     toolbar.append(save);
     dom.attachToolbar(code, toolbar, "deskbridgeSaveEnhanced");
@@ -92,15 +95,15 @@ function enhanceNormalCodeBlocks(): void {
 
 function enhanceImages(): void {
   for (const item of images.findGeneratedImages()) {
-    const save = button("Save to DeskBridge", "deskbridge-button deskbridge-image-button");
+    const save = button(l("saveImage"), "deskbridge-button deskbridge-image-button");
     save.addEventListener("click", async () => {
       const status = await run({ version: 1, id: newId("status"), action: "get_status", arguments: {} });
       const workspace = status.success ? (status.data as { workspace?: string }).workspace : undefined;
       if (!workspace) {
-        window.alert("Open DeskBridge and choose a workspace before saving this image.");
+        window.alert(l("chooseWorkspace"));
         return;
       }
-      const destination = window.prompt("Destination path inside the current DeskBridge workspace:", `${workspace}\\assets\\images\\image.png`);
+      const destination = window.prompt(l("destinationPrompt"), `${workspace}\\assets\\images\\image.png`);
       if (!destination) return;
       const response = await run({ version: 1, id: newId("image"), action: "download_asset",
         arguments: { url: item.sourceUrl, destination } });
@@ -247,13 +250,19 @@ async function ensureTrustedInputPermission(): Promise<boolean> {
   return false;
 }
 
-new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
-scan();
-if (webAgent.isDedicatedAgentTab()) {
-  webAgent.showStatus("DeskBridge · ChatGPT Web only", "Waiting for a local job. GPT-5.6 Sol · High is mandatory.");
-  void ensureTrustedInputPermission().then(ready => {
-    if (!ready) return;
-    scheduleWebAgentPoll();
-    webAgentPollTimer = window.setInterval(scheduleWebAgentPoll, 2_000);
+void (async () => {
+  language = await getLanguage();
+  chrome.storage.onChanged.addListener(changes => {
+    if (changes["deskbridge.language"]?.newValue === "vi" || changes["deskbridge.language"]?.newValue === "en") language = changes["deskbridge.language"].newValue as Language;
   });
-}
+  new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
+  scan();
+  if (webAgent.isDedicatedAgentTab()) {
+    webAgent.showStatus(language === "vi" ? "DeskBridge · Chỉ dùng ChatGPT Web" : "DeskBridge · ChatGPT Web only", language === "vi" ? "Đang chờ tác vụ cục bộ. Bắt buộc GPT-5.6 Sol · Cao." : "Waiting for a local job. GPT-5.6 Sol · High is mandatory.");
+    void ensureTrustedInputPermission().then(ready => {
+      if (!ready) return;
+      scheduleWebAgentPoll();
+      webAgentPollTimer = window.setInterval(scheduleWebAgentPoll, 2_000);
+    });
+  }
+})();

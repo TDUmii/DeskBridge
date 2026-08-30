@@ -14,7 +14,7 @@ internal sealed record InstallResult(string InstallRoot, string ExtensionPath);
 
 internal sealed class InstallerService
 {
-    private const string ProductVersion = "1.2.1";
+    private const string ProductVersion = "1.3.0";
     private const string ExtensionId = "chhimbcahcjjpggdlahimdcaohaaehhm";
     private const string PayloadResource = "DeskBridge.Setup.Payload.zip";
 

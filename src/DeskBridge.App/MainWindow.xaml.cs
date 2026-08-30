@@ -20,6 +20,8 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             await _viewModel.InitializeAsync();
+            ((App)Application.Current).LocalizationService.Apply(_viewModel.SelectedLanguage);
+            _viewModel.ApplyLanguage();
             ((App)Application.Current).ThemeService.Apply(_viewModel.SelectedTheme);
             _ = new PermissionBroker().RunAsync(_permissionCancellation.Token);
         };
@@ -28,7 +30,7 @@ public partial class MainWindow : Window
 
     private async void ChooseWorkspace_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog { Title = "Choose the allowed DeskBridge workspace", Multiselect = false };
+        var dialog = new OpenFolderDialog { Title = LocalizationService.Vietnamese ? "Chọn không gian làm việc được phép cho DeskBridge" : "Choose the allowed DeskBridge workspace", Multiselect = false };
         if (dialog.ShowDialog(this) == true) await _viewModel.SetWorkspaceAsync(dialog.FolderName);
     }
 
@@ -49,6 +51,13 @@ public partial class MainWindow : Window
         await _viewModel.SaveThemeAsync(mode);
         ((App)Application.Current).ThemeService.Apply(mode);
     }
+    private async void Language_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ComboBox { SelectedItem: string mode } || !IsLoaded || !_viewModel.IsInitialized) return;
+        await _viewModel.SaveLanguageAsync(mode);
+        ((App)Application.Current).LocalizationService.Apply(mode);
+        _viewModel.ApplyLanguage();
+    }
     private async void Skill_CheckedChanged(object sender, RoutedEventArgs e)
     {
         if (sender is CheckBox { DataContext: SkillIntegrationRow row } && IsLoaded && _viewModel.IsInitialized)
@@ -63,7 +72,7 @@ public partial class MainWindow : Window
     private void ChooseAgentFile_Click(object sender, RoutedEventArgs e)
     {
         if (!_viewModel.HasWorkspace) return;
-        var dialog = new OpenFileDialog { Title = "Choose a file inside the DeskBridge workspace", InitialDirectory = _viewModel.Workspace, CheckFileExists = true };
+        var dialog = new OpenFileDialog { Title = LocalizationService.Vietnamese ? "Chọn một tệp trong không gian làm việc DeskBridge" : "Choose a file inside the DeskBridge workspace", InitialDirectory = _viewModel.Workspace, CheckFileExists = true };
         if (dialog.ShowDialog(this) == true) _viewModel.AgentSourcePath = dialog.FileName;
     }
     private async void StartAgent_Click(object sender, RoutedEventArgs e) => await _viewModel.StartAgentAsync();

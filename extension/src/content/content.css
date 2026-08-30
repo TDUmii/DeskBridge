@@ -3,13 +3,18 @@
 .deskbridge-save-toolbar { left: auto; }
 .deskbridge-button { border: 1px solid #aebccb; border-radius: 10px; background: #fff; color: #142033; padding: .5rem .78rem; cursor: pointer; box-shadow: 0 3px 10px rgb(20 32 51 / 12%); }
 .deskbridge-button:hover { background: #eaf1f8; }
-.deskbridge-button:focus-visible { outline: 3px solid #4cc9f0; outline-offset: 2px; }
+.deskbridge-button:focus-visible { outline: 3px solid #5c7894; outline-offset: 2px; }
 .deskbridge-button:disabled { cursor: wait; opacity: .58; }
-.deskbridge-primary { border-color: #147dcc; background: #147dcc; color: #fff; }
-.deskbridge-primary:hover { background: #0b68b0; }
+.deskbridge-primary { border-color: #315f8c; background: #315f8c; color: #fff; }
+.deskbridge-primary:hover { background: #274c70; }
 .deskbridge-result { flex: 1 1 100%; max-height: 15rem; overflow: auto; white-space: pre-wrap; border-radius: 10px; padding: .7rem; background: #eef5fb; color: #142033; font: 12px/1.45 ui-monospace, Consolas, monospace; }
 .deskbridge-result[data-state="success"] { background: #d9f4ec; color: #076655; }
 .deskbridge-result[data-state="error"] { background: #fce5e7; color: #a33a43; }
+.deskbridge-result { scrollbar-width: thin; scrollbar-color: #8796a5 #e6ebf0; }
+.deskbridge-result::-webkit-scrollbar { width: 10px; height: 10px; }
+.deskbridge-result::-webkit-scrollbar-track { background: #e6ebf0; }
+.deskbridge-result::-webkit-scrollbar-thumb { border: 2px solid #e6ebf0; border-radius: 8px; background: #8796a5; }
+.deskbridge-result::-webkit-scrollbar-thumb:hover { background: #647789; }
 .deskbridge-image-wrap { position: relative; }
 .deskbridge-image-button { position: absolute; right: .75rem; bottom: .75rem; opacity: .92; }
 @media (prefers-reduced-motion: no-preference) { .deskbridge-button { transition: background-color 120ms ease-out, box-shadow 120ms ease-out; } }
@@ -17,9 +22,9 @@
 .deskbridge-agent-strip > span:last-child { display: grid; min-width: 0; }
 .deskbridge-agent-strip strong { font-size: 13px; letter-spacing: .01em; }
 .deskbridge-agent-strip small { overflow: hidden; color: #a8b5c5; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-.deskbridge-agent-mark { width: .72rem; height: .72rem; flex: 0 0 auto; border: 2px solid #0d1118; border-radius: 999px; background: #56d7f4; box-shadow: 0 0 0 4px rgb(86 215 244 / 18%); }
-.deskbridge-agent-strip[data-state="error"] .deskbridge-agent-mark { background: #ff9aa4; box-shadow: 0 0 0 4px rgb(255 154 164 / 16%); }
-.deskbridge-agent-strip[data-state="success"] .deskbridge-agent-mark { background: #43d5b3; box-shadow: 0 0 0 4px rgb(67 213 179 / 16%); }
+.deskbridge-agent-mark { width: .72rem; height: .72rem; flex: 0 0 auto; border: 2px solid #0d1118; border-radius: 999px; background: #7b96af; }
+.deskbridge-agent-strip[data-state="error"] .deskbridge-agent-mark { background: #d8848b; }
+.deskbridge-agent-strip[data-state="success"] .deskbridge-agent-mark { background: #69a497; }
 @media (prefers-color-scheme: light) { .deskbridge-agent-strip { border-color: #d8e0ea; background: rgb(255 255 255 / 97%); color: #142033; box-shadow: 0 12px 36px rgb(20 32 51 / 16%); } .deskbridge-agent-strip small { color: #5b687b; } .deskbridge-agent-mark { border-color: #fff; } }
 @media (prefers-reduced-motion: no-preference) { .deskbridge-agent-strip[data-state="working"] .deskbridge-agent-mark { animation: deskbridge-pulse 1.8s ease-in-out infinite; } }
 @keyframes deskbridge-pulse { 50% { opacity: .5; transform: scale(.82); } }
