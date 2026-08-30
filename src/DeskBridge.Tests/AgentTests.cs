@@ -8,6 +8,44 @@ namespace DeskBridge.Tests;
 public sealed class AgentTests
 {
     [Fact]
+    public async Task CreateNewRunNeedsNoSourceAndKeepsWorkspacePrivate()
+    {
+        using var workspace = new TestWorkspace();
+        await File.WriteAllTextAsync(workspace.PathOf("private-note.txt"), "Do not upload this file.");
+        var store = Store(workspace);
+        var job = store.Create(new AgentRunRequest(workspace.Root, null,
+            "Create a complete dark-mode portfolio website as a ZIP.", new AgentRunOptions(), AgentRunMode.CreateNew));
+        var claim = store.ClaimNext();
+
+        Assert.NotNull(claim);
+        Assert.Equal(AgentRunMode.CreateNew, claim.Mode);
+        Assert.False(claim.HasSource);
+        Assert.Null(claim.SourceFileName);
+        Assert.Equal(0, claim.SourceSize);
+        Assert.Contains("No source file is attached", claim.Prompt, StringComparison.Ordinal);
+        Assert.Contains("workspace files", claim.Prompt, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(workspace.Root, claim.Prompt, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("private-note.txt", claim.Prompt, StringComparison.OrdinalIgnoreCase);
+        Assert.Throws<InvalidOperationException>(() => store.ReadSourceChunk(job.Id, 0, 100));
+
+        var candidateName = $"portfolio-{claim.CandidateToken}.zip";
+        var downloaded = workspace.PathOf(candidateName);
+        using (var archive = System.IO.Compression.ZipFile.Open(downloaded, System.IO.Compression.ZipArchiveMode.Create))
+        {
+            var entry = archive.CreateEntry("index.html");
+            await using var writer = new StreamWriter(entry.Open());
+            await writer.WriteAsync("<!doctype html><title>Portfolio</title>");
+        }
+        var result = await store.InspectCandidateAsync(job.Id, downloaded,
+            new BrowserCandidateAssessment(candidateName, 96, "Complete portfolio ZIP.", ["Includes index.html"], []), CancellationToken.None);
+
+        Assert.True(result.Accepted);
+        Assert.Contains("DeskBridge Results", result.LocalPath, StringComparison.OrdinalIgnoreCase);
+        Assert.True(File.Exists(workspace.PathOf("private-note.txt")));
+        Assert.Null(job.PreservedSourcePath);
+    }
+
+    [Fact]
     public async Task WebStorePreservesSourceAndPublishesAcceptedCandidate()
     {
         using var workspace = new TestWorkspace();
@@ -36,7 +74,7 @@ public sealed class AgentTests
         Assert.True(File.Exists(result.LocalPath));
         Assert.Contains("DeskBridge Results", result.LocalPath, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("Keep this original.", await File.ReadAllTextAsync(source));
-        Assert.Equal("Keep this original.", await File.ReadAllTextAsync(job.PreservedSourcePath));
+        Assert.Equal("Keep this original.", await File.ReadAllTextAsync(job.PreservedSourcePath!));
     }
 
     [Fact]
@@ -78,6 +116,24 @@ public sealed class AgentTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => store.InspectCandidateAsync(job.Id, downloaded,
             new BrowserCandidateAssessment("untrusted.md", 100, "Claimed complete.", [], []), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CreateNewRunRejectsUnsafeZipPaths()
+    {
+        using var workspace = new TestWorkspace();
+        var store = Store(workspace);
+        var job = store.Create(new AgentRunRequest(workspace.Root, null, "Create a website.", new AgentRunOptions(), AgentRunMode.CreateNew));
+        var claim = store.ClaimNext()!;
+        var candidateName = $"website-{claim.CandidateToken}.zip";
+        var downloaded = workspace.PathOf(candidateName);
+        using (var archive = System.IO.Compression.ZipFile.Open(downloaded, System.IO.Compression.ZipArchiveMode.Create))
+        {
+            archive.CreateEntry("../outside.txt");
+        }
+
+        await Assert.ThrowsAsync<InvalidDataException>(() => store.InspectCandidateAsync(job.Id, downloaded,
+            new BrowserCandidateAssessment(candidateName, 100, "Unsafe archive.", [], []), CancellationToken.None));
     }
 
     [Fact]

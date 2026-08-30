@@ -157,8 +157,13 @@ async function executeWebAgent(claim: WebAgentClaim): Promise<void> {
     webAgent.showStatus("DeskBridge · checking ChatGPT Web", "Requiring GPT-5.6 Sol with High reasoning (3/3). No Codex, Codex workspace, or API fallback.");
     await webAgent.ensureSolHigh();
     await reportProgress(claim.runId, "Verified", "GPT-5.6 Sol · High (3/3) verified in ChatGPT Web.");
-    webAgent.showStatus("DeskBridge · attaching source", claim.sourceFileName);
-    await webAgent.uploadSource(claim);
+    if (claim.hasSource) {
+      webAgent.showStatus("DeskBridge · attaching source", claim.sourceFileName ?? "Selected workspace file");
+      await webAgent.uploadSource(claim);
+    } else {
+      webAgent.showStatus("DeskBridge · creating from idea", "No workspace files were uploaded. Preparing a new downloadable artifact.");
+      await reportProgress(claim.runId, "Idea ready", "Creating from the request only. No workspace files were uploaded.");
+    }
 
     let prompt = claim.prompt;
     for (let iteration = 1; iteration <= claim.maximumIterations; iteration++) {
@@ -171,7 +176,7 @@ async function executeWebAgent(claim: WebAgentClaim): Promise<void> {
       const result = await downloadCandidate(claim.runId, assessment, claim.candidateToken);
       if (result.terminal) {
         webAgent.showStatus(result.accepted ? "DeskBridge · finished" : "DeskBridge · best version preserved",
-          result.accepted ? `Verified locally · score ${result.score}/100 · ${result.localPath}` : result.summary,
+          result.accepted ? `Verified locally · score ${result.score}/100 · open the result from the DeskBridge app.` : result.summary,
           result.accepted ? "success" : "error");
         return;
       }

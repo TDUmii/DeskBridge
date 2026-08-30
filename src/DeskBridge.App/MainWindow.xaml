@@ -15,7 +15,7 @@
                 </Border>
                 <StackPanel Grid.Column="1" Margin="14,2,0,0">
                     <TextBlock Text="DeskBridge" Foreground="{DynamicResource HeaderInkBrush}" FontSize="24" FontWeight="SemiBold"/>
-                    <TextBlock Text="Local verification for ChatGPT Web file work" Foreground="{DynamicResource HeaderMutedBrush}" Margin="0,2,0,0"/>
+                    <TextBlock Text="Local verification for ChatGPT Web creation and file work" Foreground="{DynamicResource HeaderMutedBrush}" Margin="0,2,0,0"/>
                 </StackPanel>
                 <Border Grid.Column="2" Background="#163A35" BorderBrush="#2A6B61" BorderThickness="1" CornerRadius="14" Padding="12,7" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}" Margin="0,0,8,0"/><TextBlock Text="Control panel ready" Foreground="#DDFCF4" FontWeight="SemiBold"/></StackPanel>
@@ -29,8 +29,8 @@
                     <Grid Margin="4,12,4,8" MaxWidth="1060" HorizontalAlignment="Center">
                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                         <StackPanel Margin="2,0,0,12">
-                            <TextBlock Text="Turn a request into a verified file" FontSize="25" FontWeight="SemiBold"/>
-                            <TextBlock Text="DeskBridge stays on ChatGPT Web, checks every downloaded candidate locally, and keeps the original untouched. No Codex workspace and no API fallback." Foreground="{DynamicResource MutedBrush}" FontSize="14" Margin="0,6,0,0" MaxWidth="820" HorizontalAlignment="Left"/>
+                            <TextBlock Text="Turn an idea or file into a verified result" FontSize="25" FontWeight="SemiBold"/>
+                            <TextBlock Text="Create from a request alone or improve one selected file. DeskBridge stays on ChatGPT Web, checks downloads locally, and never shares the rest of your workspace." Foreground="{DynamicResource MutedBrush}" FontSize="14" Margin="0,6,0,0" MaxWidth="850" HorizontalAlignment="Left"/>
                         </StackPanel>
                         <Grid Grid.Row="1">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
@@ -39,27 +39,34 @@
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                         <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentSoftBrush}"><TextBlock Text="1" Foreground="{DynamicResource PrimaryBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-                                        <TextBlock Text="Choose the source file" FontSize="17" FontWeight="SemiBold" Margin="10,3,0,0"/>
+                                        <TextBlock Text="Choose how to start" FontSize="17" FontWeight="SemiBold" Margin="10,3,0,0"/>
                                     </StackPanel>
-                                    <TextBlock Text="The file must be inside your selected workspace." Foreground="{DynamicResource MutedBrush}" Margin="38,0,0,9"/>
-                                    <Grid Margin="38,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBox Text="{Binding AgentSourcePath, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" MinHeight="42" VerticalContentAlignment="Center"/><Button Grid.Column="1" Content="Choose file" Margin="8,0,0,0" Click="ChooseAgentFile_Click"/></Grid>
+                                    <TextBlock Text="Create something new from the idea alone, or attach exactly one file to improve." Foreground="{DynamicResource MutedBrush}" Margin="38,0,0,10"/>
+                                    <Grid Margin="38,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                        <RadioButton GroupName="AgentMode" Style="{StaticResource AgentModeCard}" IsChecked="{Binding IsCreateNewMode, Mode=TwoWay}" IsEnabled="{Binding CanChangeAgentMode}" AutomationProperties.Name="Create new from an idea">
+                                            <StackPanel><TextBlock Text="Create new" FontWeight="SemiBold" FontSize="14"/><TextBlock Text="Request only. No workspace uploads." Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,3,0,0"/></StackPanel>
+                                        </RadioButton>
+                                        <RadioButton Grid.Column="1" GroupName="AgentMode" Style="{StaticResource AgentModeCard}" Margin="8,0,0,0" IsChecked="{Binding IsImproveFileMode, Mode=TwoWay}" IsEnabled="{Binding CanChangeAgentMode}" AutomationProperties.Name="Improve an existing file">
+                                            <StackPanel><TextBlock Text="Improve a file" FontWeight="SemiBold" FontSize="14"/><TextBlock Text="Only the selected file is uploaded." Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,3,0,0"/></StackPanel>
+                                        </RadioButton>
+                                    </Grid>
+
+                                    <Border Visibility="{Binding IsCreateNewMode, Converter={StaticResource BooleanToVisibilityConverter}}" Background="{DynamicResource SuccessSurfaceBrush}" BorderBrush="{DynamicResource SuccessBrush}" BorderThickness="1" CornerRadius="11" Padding="10,8" Margin="38,0,0,14">
+                                        <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Output workspace" FontSize="11" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding Workspace}" FontWeight="SemiBold" Margin="0,3,16,0" TextTrimming="CharacterEllipsis"/><TextBlock Text="No files or local paths are sent to ChatGPT Web." Foreground="{DynamicResource SuccessBrush}" FontSize="11" Margin="0,3,0,0"/></StackPanel><TextBlock Grid.Column="1" Text="Request only" Foreground="{DynamicResource SuccessBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/></Grid>
+                                    </Border>
+
+                                    <Grid Visibility="{Binding IsImproveFileMode, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="38,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBox Text="{Binding AgentSourcePath, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" MinHeight="42" VerticalContentAlignment="Center" AutomationProperties.Name="Selected source file"/><Button Grid.Column="1" Content="Choose file" Margin="8,0,0,0" IsEnabled="{Binding CanChooseAgentSource}" Click="ChooseAgentFile_Click"/></Grid>
 
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                         <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentSoftBrush}"><TextBlock Text="2" Foreground="{DynamicResource PrimaryBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                                         <TextBlock Text="Describe the finished result" FontSize="17" FontWeight="SemiBold" Margin="10,3,0,0"/>
                                     </StackPanel>
-                                    <TextBox Text="{Binding AgentRequest, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="104" MaxHeight="170" VerticalScrollBarVisibility="Auto" Margin="38,0,0,12" AutomationProperties.Name="Agent request"/>
+                                    <TextBlock Text="Describe the finished downloadable result and its quality." Foreground="{DynamicResource MutedBrush}" Margin="38,0,0,7"/>
+                                    <TextBox Text="{Binding AgentRequest, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="76" MaxHeight="140" VerticalScrollBarVisibility="Auto" Margin="38,0,0,10" AutomationProperties.Name="Agent request"/>
 
-                                    <Border Background="{DynamicResource PanelRaisedBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="11" Padding="10" Margin="38,0,0,12">
-                                        <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                            <StackPanel><TextBlock Text="Web model" FontSize="11" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding AgentModel}" FontWeight="SemiBold" Margin="0,5,0,0"/></StackPanel>
-                                            <StackPanel Grid.Column="1"><TextBlock Text="Reasoning" FontSize="11" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding AgentReasoning}" FontWeight="SemiBold" Margin="0,5,0,0"/></StackPanel>
-                                            <StackPanel Grid.Column="2"><TextBlock Text="Maximum passes" FontSize="11" Foreground="{DynamicResource MutedBrush}"/><ComboBox ItemsSource="{Binding AgentIterationOptions}" SelectedItem="{Binding AgentIterations}" Margin="0,4,0,0"/></StackPanel>
-                                        </Grid>
-                                    </Border>
-
-                                    <WrapPanel Margin="38,0,0,0"><Button Content="Start in ChatGPT Web" Style="{StaticResource PrimaryButton}" IsEnabled="{Binding CanStartAgent}" Click="StartAgent_Click"/><Button Content="Cancel" Margin="8,0,0,0" IsEnabled="{Binding IsAgentRunning}" Click="CancelAgent_Click"/><Button Content="Open result" Style="{StaticResource QuietButton}" Margin="8,0,0,0" IsEnabled="{Binding HasAgentResult}" Click="OpenAgentResult_Click"/></WrapPanel>
-                                    <TextBlock Text="Requires Chrome, the DeskBridge extension, a signed-in ChatGPT Web account, a workspace, a source file, and a clear request. If Sol High cannot be verified, nothing is sent." Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="38,9,0,0"/>
+                                    <WrapPanel Margin="38,0,0,0"><Button Content="{Binding AgentStartLabel}" Style="{StaticResource PrimaryButton}" IsEnabled="{Binding CanStartAgent}" Click="StartAgent_Click"/><Button Content="Cancel" Margin="8,0,0,0" IsEnabled="{Binding IsAgentRunning}" Click="CancelAgent_Click"/><Button Content="Open result" Style="{StaticResource QuietButton}" Margin="8,0,0,0" IsEnabled="{Binding HasAgentResult}" Click="OpenAgentResult_Click"/></WrapPanel>
+                                    <TextBlock Text="{Binding AgentRequirementsText}" Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="38,9,0,0"/>
+                                    <TextBlock Text="If GPT-5.6 Sol with High reasoning cannot be verified, nothing is sent." Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="38,2,0,0"/>
                                 </StackPanel>
                             </Border>
 
@@ -70,6 +77,15 @@
                                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0"><Ellipse Width="10" Height="10" Fill="{DynamicResource SuccessBrush}" Margin="0,5,9,0" VerticalAlignment="Top"/><TextBlock Text="{Binding AgentStatus}" FontSize="19" FontWeight="SemiBold"/></StackPanel>
                                         <TextBlock Text="{Binding AgentStatusDetail}" Foreground="{DynamicResource MutedBrush}" Margin="19,6,0,14"/>
                                         <Button Content="Open run evidence" Style="{StaticResource QuietButton}" HorizontalAlignment="Left" IsEnabled="{Binding HasAgentRun}" Click="OpenAgentRun_Click"/>
+                                        <Border Background="{DynamicResource PanelRaisedBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="11" Padding="10" Margin="0,14,0,0">
+                                            <StackPanel>
+                                                <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                    <StackPanel><TextBlock Text="Web model" FontSize="11" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding AgentModel}" FontWeight="SemiBold" Margin="0,4,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="1"><TextBlock Text="Reasoning" FontSize="11" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding AgentReasoning}" FontWeight="SemiBold" Margin="0,4,0,0"/></StackPanel>
+                                                </Grid>
+                                                <Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Maximum passes" FontSize="11" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/><ComboBox Grid.Column="1" ItemsSource="{Binding AgentIterationOptions}" SelectedItem="{Binding AgentIterations}" MinWidth="82"/></Grid>
+                                            </StackPanel>
+                                        </Border>
                                     </StackPanel>
                                 </Border>
                                 <TextBlock Text="Run timeline" FontSize="16" FontWeight="SemiBold" Margin="2,0,0,8"/>

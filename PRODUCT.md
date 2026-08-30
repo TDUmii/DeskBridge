@@ -12,7 +12,7 @@ C# and .NET 8 power the WPF control panel, local verifier, and Chrome Native Mes
 
 ## Product purpose
 
-DeskBridge turns a normal file request into a bounded ChatGPT Web workflow. It preserves the selected source, opens a dedicated web tab, requires GPT-5.6 Sol with High reasoning, uploads through the visible ChatGPT page, downloads each proposed artifact, checks it locally, and asks the same web conversation for revisions until the completion gate passes or the configured pass limit is reached.
+DeskBridge turns an idea or file request into a bounded ChatGPT Web workflow. It can create from the request alone or preserve and upload one explicitly selected source, opens a dedicated web tab, requires GPT-5.6 Sol with High reasoning, downloads each proposed artifact, checks it locally, and asks the same web conversation for revisions until the completion gate passes or the configured pass limit is reached.
 
 ## Non-negotiable boundary
 
@@ -20,7 +20,7 @@ The Agent is ChatGPT Web-only. It never switches to Codex, creates or uses a Cod
 
 ## Operating context
 
-The user signs in to ChatGPT normally in Chrome, installs the DeskBridge extension/native host, selects one local workspace and source file, then describes the finished outcome. The original remains unchanged. Accepted output appears in `DeskBridge Results`; every candidate and inspection record stays in a workspace-local evidence directory.
+The user signs in to ChatGPT normally in Chrome, installs the DeskBridge extension/native host, selects one local workspace, chooses create-new or improve-file mode, then describes the finished outcome. Create-new uploads no workspace files or local paths. Improve-file uploads only the explicit source and keeps the original unchanged. Accepted output appears in `DeskBridge Results`; every candidate and inspection record stays in a workspace-local evidence directory.
 
 ## Capabilities and constraints
 
@@ -28,7 +28,7 @@ The user signs in to ChatGPT normally in Chrome, installs the DeskBridge extensi
 - Production communication uses Chrome Native Messaging only; DeskBridge exposes no local HTTP server.
 - Only a tab opened with the DeskBridge agent marker may claim autonomous jobs; normal ChatGPT tabs are not polled for work.
 - Model and reasoning are locked to GPT-5.6 Sol and High (3/3) and verified before sending.
-- The selected source is transferred to the page through the visible file-upload control. No cookies, tokens, browser profile data, private endpoints, or API keys are accessed.
+- Create-new sends only the user's request. Improve-file transfers only the selected source through the visible file-upload control. No cookies, tokens, browser profile data, private endpoints, or API keys are accessed.
 - Downloads require the run's unique filename token before local inspection.
 - The original file cannot be overwritten. Completion requires a locally inspected candidate, score at least 90, and no declared remaining issue.
 - Existing explicit action blocks remain permission- and workspace-guarded.

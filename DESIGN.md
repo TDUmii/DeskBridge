@@ -14,11 +14,11 @@ Use Segoe UI Variable or Segoe UI in WPF and the Chrome/system stack in the exte
 
 ## Layout
 
-The Agent tab presents one linear job: selected source, requested outcome, locked ChatGPT Web transport, locked GPT-5.6 Sol and High 3/3 indicators, explicit start/cancel controls, then status and evidence. Numbered markers make the setup order scannable, while the current-run card and timeline remain visible beside it at the default window size. Workspace identity remains visible. The extension uses the same icon and color tokens, plus a compact floating status strip only on the dedicated agent tab; it must not obscure the composer.
+The Agent tab presents one linear job: choose create-new or improve-file, provide the requested outcome, review the locked ChatGPT Web transport and GPT-5.6 Sol High 3/3 indicators, then start or cancel and follow status evidence. Create-new visibly states that the workspace is an output boundary and no files are uploaded. Numbered markers make the setup order scannable, while the current-run card and timeline remain visible beside it at the default window size. The extension uses the same icon and color tokens, plus a compact floating status strip only on the dedicated agent tab; it must not obscure the composer.
 
 ## Components and states
 
-Start is enabled when a workspace, existing source, and non-empty request are ready. No API key field exists. Status explicitly names Waiting, Verifying, Uploading, ChatGPT Web pass, Local verification, Revising, Completed, Review needed, Cancelled, or Failed. A web failure always states that no Codex/API fallback ran.
+Create-new starts with a workspace and non-empty request. Improve-file additionally requires one valid source inside that workspace. No API key field exists. Status explicitly names Waiting, Verifying, Idea ready or Uploading, ChatGPT Web pass, Local verification, Revising, Completed, Review needed, Cancelled, or Failed. A web failure always states that no Codex/API fallback ran.
 
 ## Theme
 

@@ -239,6 +239,8 @@ export class ChatGptWebAgentAdapter {
   }
 
   async uploadSource(claim: WebAgentClaim): Promise<void> {
+    if (!claim.hasSource || !claim.sourceFileName) throw new Error("This DeskBridge job does not include a source file.");
+    const sourceFileName = claim.sourceFileName;
     const chunks: Uint8Array[] = [];
     let offset = 0;
     while (offset < claim.sourceSize) {
@@ -253,7 +255,7 @@ export class ChatGptWebAgentAdapter {
       if (data.complete) break;
     }
     const parts = chunks.map(chunk => chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength) as ArrayBuffer);
-    const file = new File(parts, claim.sourceFileName, { type: "application/octet-stream" });
+    const file = new File(parts, sourceFileName, { type: "application/octet-stream" });
     const input = document.querySelector<HTMLInputElement>('input#upload-files[type="file"]');
     if (!input) throw new Error("Could not find ChatGPT Web's file upload control.");
     const transfer = new DataTransfer();
@@ -261,7 +263,7 @@ export class ChatGptWebAgentAdapter {
     input.files = transfer.files;
     input.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
     input.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
-    await this.waitFor(() => this.hasAttachedFile(claim.sourceFileName) ? true : null, 60_000,
+    await this.waitFor(() => this.hasAttachedFile(sourceFileName) ? true : null, 60_000,
       "ChatGPT Web did not finish attaching the source file.");
   }
 

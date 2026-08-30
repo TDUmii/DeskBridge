@@ -24,7 +24,9 @@ export interface DeskBridgeResponse {
 
 export interface WebAgentClaim {
   runId: string;
-  sourceFileName: string;
+  mode: "improveFile" | "createNew" | number;
+  hasSource: boolean;
+  sourceFileName?: string;
   sourceSize: number;
   prompt: string;
   requiredModel: string;

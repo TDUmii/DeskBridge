@@ -29,7 +29,9 @@ foreach ($stage in @($hostStage, $appStage)) {
 }
 
 dotnet publish (Join-Path $repositoryRoot 'src\DeskBridge.Host\DeskBridge.Host.csproj') -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false "-p:PathMap=$repositoryRoot=/_/" -o $hostStage
+if ($LASTEXITCODE -ne 0) { throw 'DeskBridge.Host publish failed.' }
 dotnet publish (Join-Path $repositoryRoot 'src\DeskBridge.App\DeskBridge.App.csproj') -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false "-p:PathMap=$repositoryRoot=/_/" -o $appStage
+if ($LASTEXITCODE -ne 0) { throw 'DeskBridge.App publish failed.' }
 Copy-Item -Path (Join-Path $hostStage '*') -Destination $resolvedPackageRoot -Recurse -Force
 Copy-Item -Path (Join-Path $appStage '*') -Destination $resolvedPackageRoot -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'extension\dist') -Destination (Join-Path $resolvedPackageRoot 'extension') -Recurse

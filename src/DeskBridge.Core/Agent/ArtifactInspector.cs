@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
 using DeskBridge.Core.Skills;
@@ -14,6 +15,7 @@ public sealed partial class ArtifactInspector(IDocumentConverter? converter = nu
         { ".doc", ".docx", ".docm", ".odt", ".rtf", ".epub", ".pdf", ".ppt", ".pps", ".pot", ".pptx", ".pptm", ".ppsx", ".ppsm", ".odp", ".xls", ".xlsx", ".xlsm", ".xlsb", ".ods" };
     private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
         { ".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp" };
+    private static readonly HashSet<string> ArchiveExtensions = new(StringComparer.OrdinalIgnoreCase) { ".zip" };
     private readonly IDocumentConverter _converter = converter ?? new AnyDocDocumentConverter();
 
     public async Task<LocalArtifactInspection> InspectAsync(string path, string inspectionDirectory, CancellationToken cancellationToken)
@@ -56,6 +58,10 @@ public sealed partial class ArtifactInspector(IDocumentConverter? converter = nu
             var image = await SixLabors.ImageSharp.Image.IdentifyAsync(path, cancellationToken).ConfigureAwait(false);
             summary = image is null ? "Image metadata could not be decoded." : $"Image artifact: {image.Width} × {image.Height}px, {image.PixelType.BitsPerPixel} bits per pixel.";
         }
+        else if (ArchiveExtensions.Contains(extension))
+        {
+            summary = InspectZip(path);
+        }
 
         return new LocalArtifactInspection(path, extension, info.Length, hash, words, lines, markdownPath, summary);
     }
@@ -73,6 +79,35 @@ public sealed partial class ArtifactInspector(IDocumentConverter? converter = nu
         var buffer = new char[maximumCharacters];
         var read = await reader.ReadBlockAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false);
         return new string(buffer, 0, read);
+    }
+
+    private static string InspectZip(string path)
+    {
+        using var archive = ZipFile.OpenRead(path);
+        if (archive.Entries.Count == 0) throw new InvalidDataException("The downloaded ZIP is empty.");
+        if (archive.Entries.Count > 5_000) throw new InvalidDataException("The downloaded ZIP contains too many entries to verify safely.");
+
+        long totalUncompressed = 0;
+        var files = new List<string>();
+        foreach (var entry in archive.Entries)
+        {
+            var normalized = entry.FullName.Replace('\\', '/');
+            var segments = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (string.IsNullOrWhiteSpace(normalized) || normalized.StartsWith('/') || Path.IsPathRooted(normalized) || segments.Any(segment => segment == ".."))
+                throw new InvalidDataException("The downloaded ZIP contains an unsafe file path.");
+            totalUncompressed = checked(totalUncompressed + entry.Length);
+            if (totalUncompressed > 2L * 1024 * 1024 * 1024)
+                throw new InvalidDataException("The downloaded ZIP expands beyond the 2 GB verification limit.");
+            if (!normalized.EndsWith('/')) files.Add(normalized);
+        }
+        if (files.Count == 0) throw new InvalidDataException("The downloaded ZIP contains no files.");
+        var compressed = Math.Max(1L, new FileInfo(path).Length);
+        if (totalUncompressed > 10L * 1024 * 1024 && totalUncompressed / compressed > 500)
+            throw new InvalidDataException("The downloaded ZIP has an unsafe compression ratio.");
+
+        var preview = string.Join(", ", files.Take(30));
+        if (files.Count > 30) preview += $", and {files.Count - 30} more";
+        return $"ZIP artifact with {files.Count} files and {totalUncompressed} uncompressed bytes. Entries: {preview}";
     }
 
     private static string Collapse(string value) => WhitespacePattern().Replace(value, " ").Trim();

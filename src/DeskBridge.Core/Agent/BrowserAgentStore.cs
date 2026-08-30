@@ -15,26 +15,35 @@ public sealed class BrowserAgentStore(string? root = null, ArtifactInspector? in
 
     public BrowserAgentJob Create(AgentRunRequest request)
     {
+        if (!Directory.Exists(request.Workspace)) throw new DirectoryNotFoundException("The selected workspace does not exist.");
         var guard = new WorkspaceGuard(request.Workspace);
-        var source = guard.EnsureInside(request.SourcePath, false);
-        if (!File.Exists(source)) throw new FileNotFoundException("The selected source file does not exist.", source);
         if (string.IsNullOrWhiteSpace(request.UserRequest)) throw new ArgumentException("Describe the finished result you want.", nameof(request));
+        string? source = null;
+        if (request.Mode == AgentRunMode.ImproveFile)
+        {
+            source = guard.EnsureInside(request.SourcePath ?? string.Empty, false);
+            if (!File.Exists(source)) throw new FileNotFoundException("The selected source file does not exist.", source);
+        }
 
         return Locked(() =>
         {
             var id = $"{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}";
             var runDirectory = Path.Combine(request.Workspace, ".deskbridge", "web-agent-runs", id);
-            var originalDirectory = Path.Combine(runDirectory, "original");
-            Directory.CreateDirectory(originalDirectory);
             Directory.CreateDirectory(Path.Combine(runDirectory, "versions"));
             Directory.CreateDirectory(Path.Combine(runDirectory, "inspection"));
-            var preserved = Path.Combine(originalDirectory, Path.GetFileName(source));
-            File.Copy(source, preserved, true);
+            string? preserved = null;
+            if (source is not null)
+            {
+                var originalDirectory = Path.Combine(runDirectory, "original");
+                Directory.CreateDirectory(originalDirectory);
+                preserved = Path.Combine(originalDirectory, Path.GetFileName(source));
+                File.Copy(source, preserved, true);
+            }
             var now = DateTimeOffset.UtcNow;
             var job = new BrowserAgentJob
             {
-                Id = id, Workspace = request.Workspace, SourcePath = source, PreservedSourcePath = preserved,
-                SourceFileName = Path.GetFileName(source), SourceSize = new FileInfo(source).Length,
+                Id = id, Workspace = request.Workspace, Mode = request.Mode, SourcePath = source, PreservedSourcePath = preserved,
+                SourceFileName = source is null ? null : Path.GetFileName(source), SourceSize = source is null ? 0 : new FileInfo(source).Length,
                 UserRequest = request.UserRequest.Trim(), MaximumIterations = request.Options.MaximumIterations,
                 CandidateToken = $"deskbridge-{Guid.NewGuid():N}"[..23], CreatedAt = now, UpdatedAt = now,
                 RunDirectory = runDirectory
@@ -54,9 +63,14 @@ public sealed class BrowserAgentStore(string? root = null, ArtifactInspector? in
             var job = Directory.EnumerateFiles(RunsRoot, "job.json", SearchOption.AllDirectories)
                 .Select(ReadFile).Where(item => item.Status == "pending").OrderBy(item => item.CreatedAt).FirstOrDefault();
             if (job is null) return null;
-            job = job with { Status = "claimed", Stage = "Connected", Message = "ChatGPT Web claimed this file task.", Iteration = 1, UpdatedAt = DateTimeOffset.UtcNow };
+            job = job with
+            {
+                Status = "claimed", Stage = "Connected",
+                Message = job.HasSource ? "ChatGPT Web claimed this file task." : "ChatGPT Web claimed this create-new task.",
+                Iteration = 1, UpdatedAt = DateTimeOffset.UtcNow
+            };
             Write(job);
-            return new BrowserAgentClaim(job.Id, job.SourceFileName, job.SourceSize, BuildInitialPrompt(job), job.RequiredModel,
+            return new BrowserAgentClaim(job.Id, job.Mode, job.HasSource, job.SourceFileName, job.SourceSize, BuildInitialPrompt(job), job.RequiredModel,
                 job.RequiredReasoning, job.MaximumIterations, job.CandidateToken);
         });
     }
@@ -67,7 +81,8 @@ public sealed class BrowserAgentStore(string? root = null, ArtifactInspector? in
         var count = Math.Clamp(requestedBytes, 1, MaximumChunkBytes);
         var job = Read(id) ?? throw new InvalidOperationException("Unknown web-agent job.");
         if (job.Status is "cancelled" or "failed") throw new InvalidOperationException("This web-agent job is no longer active.");
-        using var stream = File.OpenRead(job.PreservedSourcePath);
+        if (!job.HasSource) throw new InvalidOperationException("This create-new job has no source file to read.");
+        using var stream = File.OpenRead(job.PreservedSourcePath!);
         if (offset > stream.Length) throw new ArgumentOutOfRangeException(nameof(offset));
         stream.Position = offset;
         var buffer = new byte[Math.Min(count, checked((int)Math.Min(int.MaxValue, stream.Length - offset)))];
@@ -187,7 +202,9 @@ public sealed class BrowserAgentStore(string? root = null, ArtifactInspector? in
         finally { if (acquired) mutex.ReleaseMutex(); }
     }
 
-    private static string BuildInitialPrompt(BrowserAgentJob job) => $$"""
+    private static string BuildInitialPrompt(BrowserAgentJob job) => job.HasSource ? BuildFilePrompt(job) : BuildCreatePrompt(job);
+
+    private static string BuildFilePrompt(BrowserAgentJob job) => $$"""
         You are completing a DeskBridge Web-only file task. Work only in this ChatGPT Web conversation.
         Do not suggest Codex, Codex tasks, Codex workspace, API keys, the OpenAI API, or any external agent.
 
@@ -200,6 +217,26 @@ public sealed class BrowserAgentStore(string? root = null, ArtifactInspector? in
 
         At the end of your response, include exactly one JSON code block with this schema:
         {"deskbridgeAgent":1,"candidateFile":"filename-containing-the-safety-token.ext","score":95,"summary":"what changed","requirementsMet":["specific evidence"],"remainingIssues":[]}
+
+        Attach a direct downloadable file whose filename exactly matches candidateFile. Do not claim completion without attaching it.
+        Score honestly. Use score >= 90 and an empty remainingIssues only when every material requirement is satisfied.
+        """;
+
+    private static string BuildCreatePrompt(BrowserAgentJob job) => $$"""
+        You are completing a DeskBridge Web-only create-new task. Work only in this ChatGPT Web conversation.
+        Do not suggest Codex, Codex tasks, Codex workspace, API keys, the OpenAI API, or any external agent.
+
+        User request:
+        {{job.UserRequest}}
+
+        No source file is attached and no workspace files were uploaded. Create the finished artifact from the user's idea. The selected local workspace is only
+        an output boundary and has not been shared with you. Do not ask to inspect it and do not invent local file paths.
+        Produce a complete direct-download artifact, not instructions or loose code snippets. Use one file when that fully
+        represents the result, or a ZIP with a clean project structure when the result needs multiple files.
+        Inspect your own output carefully. The output filename MUST contain this exact safety token: {{job.CandidateToken}}
+
+        At the end of your response, include exactly one JSON code block with this schema:
+        {"deskbridgeAgent":1,"candidateFile":"filename-containing-the-safety-token.ext","score":95,"summary":"what was created","requirementsMet":["specific evidence"],"remainingIssues":[]}
 
         Attach a direct downloadable file whose filename exactly matches candidateFile. Do not claim completion without attaching it.
         Score honestly. Use score >= 90 and an empty remainingIssues only when every material requirement is satisfied.

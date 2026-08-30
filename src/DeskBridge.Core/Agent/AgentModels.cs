@@ -1,6 +1,17 @@
 namespace DeskBridge.Core.Agent;
 
-public sealed record AgentRunRequest(string Workspace, string SourcePath, string UserRequest, AgentRunOptions Options);
+public enum AgentRunMode
+{
+    ImproveFile = 0,
+    CreateNew = 1
+}
+
+public sealed record AgentRunRequest(
+    string Workspace,
+    string? SourcePath,
+    string UserRequest,
+    AgentRunOptions Options,
+    AgentRunMode Mode = AgentRunMode.ImproveFile);
 
 public sealed record AgentRunOptions(int MaximumIterations = 4, int PollIntervalMilliseconds = 600);
 
@@ -47,10 +58,12 @@ public sealed record BrowserAgentJob
 {
     public string Id { get; init; } = string.Empty;
     public string Workspace { get; init; } = string.Empty;
-    public string SourcePath { get; init; } = string.Empty;
-    public string PreservedSourcePath { get; init; } = string.Empty;
-    public string SourceFileName { get; init; } = string.Empty;
+    public AgentRunMode Mode { get; init; }
+    public string? SourcePath { get; init; }
+    public string? PreservedSourcePath { get; init; }
+    public string? SourceFileName { get; init; }
     public long SourceSize { get; init; }
+    public bool HasSource => !string.IsNullOrWhiteSpace(PreservedSourcePath);
     public string UserRequest { get; init; } = string.Empty;
     public int MaximumIterations { get; init; } = 4;
     public int Iteration { get; init; }
@@ -72,7 +85,9 @@ public sealed record BrowserAgentJob
 
 public sealed record BrowserAgentClaim(
     string RunId,
-    string SourceFileName,
+    AgentRunMode Mode,
+    bool HasSource,
+    string? SourceFileName,
     long SourceSize,
     string Prompt,
     string RequiredModel,

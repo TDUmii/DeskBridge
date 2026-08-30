@@ -7,6 +7,7 @@ using System.Windows.Media.Imaging;
 using DeskBridge.App.Models;
 using DeskBridge.Core.Agent;
 using DeskBridge.Core.Models;
+using DeskBridge.Core.Security;
 using DeskBridge.Core.Services;
 using DeskBridge.Core.Skills;
 
@@ -20,17 +21,18 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private DeskBridgeSettings _settings = new();
     private string _workspace = "No workspace selected";
     private string _selectedTheme = "System";
+    private AgentRunMode _agentMode = AgentRunMode.CreateNew;
     private string _agentSourcePath = string.Empty;
     private string _agentRequest = string.Empty;
     private int _agentIterations = 4;
-    private string _agentStatus = "Ready for a file task";
-    private string _agentStatusDetail = "Choose a file inside the workspace and describe the finished result you want.";
+    private string _agentStatus = "Ready to create";
+    private string _agentStatusDetail = "Choose a workspace and describe the new result you want. No workspace files will be uploaded.";
     private bool _isAgentRunning;
     private string? _agentResultPath;
     private string? _agentRunDirectory;
     private CancellationTokenSource? _agentCancellation;
 
-    public string Workspace { get => _workspace; private set { _workspace = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasWorkspace)); OnPropertyChanged(nameof(CanStartAgent)); } }
+    public string Workspace { get => _workspace; private set { _workspace = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasWorkspace)); OnPropertyChanged(nameof(CanStartAgent)); OnPropertyChanged(nameof(CanChooseAgentSource)); } }
     public bool HasWorkspace => !string.IsNullOrWhiteSpace(_settings.WorkspacePath) && Directory.Exists(_settings.WorkspacePath);
     public ObservableCollection<ActivityEntry> Activities { get; } = [];
     public ObservableCollection<AssetRow> Assets { get; } = [];
@@ -41,6 +43,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public string[] ThemeModes { get; } = ["System", "Light", "Dark"];
     public int[] AgentIterationOptions { get; } = [2, 3, 4, 5, 6, 8];
     public string SelectedTheme { get => _selectedTheme; set { _selectedTheme = value; OnPropertyChanged(); } }
+    public bool IsCreateNewMode { get => _agentMode == AgentRunMode.CreateNew; set { if (value) SetAgentMode(AgentRunMode.CreateNew); } }
+    public bool IsImproveFileMode { get => _agentMode == AgentRunMode.ImproveFile; set { if (value) SetAgentMode(AgentRunMode.ImproveFile); } }
+    public bool RequiresAgentSource => _agentMode == AgentRunMode.ImproveFile;
     public string AgentSourcePath { get => _agentSourcePath; set { _agentSourcePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStartAgent)); } }
     public string AgentRequest { get => _agentRequest; set { _agentRequest = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStartAgent)); } }
     public string AgentModel => "GPT-5.6 Sol";
@@ -49,8 +54,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public int AgentIterations { get => _agentIterations; set { _agentIterations = value; OnPropertyChanged(); } }
     public string AgentStatus { get => _agentStatus; private set { _agentStatus = value; OnPropertyChanged(); } }
     public string AgentStatusDetail { get => _agentStatusDetail; private set { _agentStatusDetail = value; OnPropertyChanged(); } }
-    public bool IsAgentRunning { get => _isAgentRunning; private set { _isAgentRunning = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStartAgent)); } }
-    public bool CanStartAgent => HasWorkspace && !IsAgentRunning && File.Exists(AgentSourcePath) && !string.IsNullOrWhiteSpace(AgentRequest);
+    public string AgentStartLabel => RequiresAgentSource ? "Improve in ChatGPT Web" : "Create in ChatGPT Web";
+    public string AgentRequirementsText => RequiresAgentSource
+        ? "Requires Chrome, the DeskBridge extension, a signed-in ChatGPT Web account, a workspace, a source file, and a clear request."
+        : "Requires Chrome, the DeskBridge extension, a signed-in ChatGPT Web account, a workspace, and a clear request. No workspace files are uploaded.";
+    public bool IsAgentRunning { get => _isAgentRunning; private set { _isAgentRunning = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStartAgent)); OnPropertyChanged(nameof(CanChangeAgentMode)); OnPropertyChanged(nameof(CanChooseAgentSource)); } }
+    public bool CanChangeAgentMode => !IsAgentRunning;
+    public bool CanChooseAgentSource => HasWorkspace && !IsAgentRunning;
+    public bool CanStartAgent => HasWorkspace && !IsAgentRunning && !string.IsNullOrWhiteSpace(AgentRequest) &&
+        (!RequiresAgentSource || HasValidAgentSource());
     public bool HasAgentResult => !string.IsNullOrWhiteSpace(_agentResultPath) && File.Exists(_agentResultPath);
     public bool HasAgentRun => !string.IsNullOrWhiteSpace(_agentRunDirectory) && Directory.Exists(_agentRunDirectory);
     public bool IsInitialized { get; private set; }
@@ -72,6 +84,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         _settings = _settings with { WorkspacePath = Path.GetFullPath(path), WorkspaceMode = true };
         await _settingsStore.SaveAsync(_settings);
+        AgentSourcePath = string.Empty;
         Workspace = _settings.WorkspacePath;
         OnPropertyChanged(nameof(CanStartAgent));
         await RefreshAssetsAsync();
@@ -101,7 +114,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             var service = new AgentRunService(_browserAgentStore);
             var options = new AgentRunOptions(AgentIterations);
-            var result = await service.RunAsync(new AgentRunRequest(_settings.WorkspacePath!, AgentSourcePath, AgentRequest, options), progress, _agentCancellation.Token);
+            var source = RequiresAgentSource ? AgentSourcePath : null;
+            var result = await service.RunAsync(new AgentRunRequest(_settings.WorkspacePath!, source, AgentRequest, options, _agentMode), progress, _agentCancellation.Token);
             _agentResultPath = result.BestArtifactPath;
             _agentRunDirectory = result.RunDirectory;
             AgentStatus = result.Status switch
@@ -119,7 +133,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
         catch (OperationCanceledException)
         {
             AgentStatus = "Cancelled";
-            AgentStatusDetail = "The current request was stopped. The original file was not changed.";
+            AgentStatusDetail = RequiresAgentSource
+                ? "The current request was stopped. The original file was not changed."
+                : "The current request was stopped. Existing workspace files were not modified; local run evidence was retained.";
             return null;
         }
         catch (Exception exception)
@@ -217,6 +233,39 @@ public sealed class MainViewModel : INotifyPropertyChanged
         var value = _settings.Permissions.GetValueOrDefault(actions[0], defaultPolicy) switch
         { "allowed" => "Allowed", "denied" => "Blocked", _ => "Ask" };
         Permissions.Add(new PermissionRow(label, description, actions, value));
+    }
+
+    private void SetAgentMode(AgentRunMode mode)
+    {
+        if (_agentMode == mode) return;
+        _agentMode = mode;
+        OnPropertyChanged(nameof(IsCreateNewMode));
+        OnPropertyChanged(nameof(IsImproveFileMode));
+        OnPropertyChanged(nameof(RequiresAgentSource));
+        OnPropertyChanged(nameof(AgentStartLabel));
+        OnPropertyChanged(nameof(AgentRequirementsText));
+        OnPropertyChanged(nameof(CanStartAgent));
+        if (!IsAgentRunning)
+        {
+            AgentStatus = mode == AgentRunMode.CreateNew ? "Ready to create" : "Ready to improve a file";
+            AgentStatusDetail = mode == AgentRunMode.CreateNew
+                ? "Describe the new result you want. The workspace is only an output boundary and no files will be uploaded."
+                : "Choose one file inside the workspace and describe the finished result you want.";
+        }
+    }
+
+    private bool HasValidAgentSource()
+    {
+        if (!HasWorkspace || !File.Exists(AgentSourcePath)) return false;
+        try
+        {
+            _ = new WorkspaceGuard(_settings.WorkspacePath!).EnsureInside(AgentSourcePath, false);
+            return true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or DeskBridge.Core.Actions.DeskBridgeActionException)
+        {
+            return false;
+        }
     }
 
     private async Task RefreshAssetsAsync()
