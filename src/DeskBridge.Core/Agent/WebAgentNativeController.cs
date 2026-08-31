@@ -7,7 +7,7 @@ public sealed class WebAgentNativeController(BrowserAgentStore store)
 {
     public static IReadOnlySet<string> Actions { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        "web_agent_claim", "web_agent_source_chunk", "web_agent_progress", "web_agent_candidate", "web_agent_fail"
+        "web_agent_claim", "web_agent_source_chunk", "web_agent_progress", "web_agent_context", "web_agent_candidate", "web_agent_fail"
     };
 
     public async Task<ActionResult> ExecuteAsync(ActionRequest request, CancellationToken cancellationToken)
@@ -23,6 +23,8 @@ public sealed class WebAgentNativeController(BrowserAgentStore store)
                     String(request.Arguments, "runId"), Long(request.Arguments, "offset"), Integer(request.Arguments, "maxBytes"))),
                 "web_agent_progress" => ActionResult.Ok(store.UpdateProgress(
                     String(request.Arguments, "runId"), String(request.Arguments, "stage"), String(request.Arguments, "message"), OptionalString(request.Arguments, "chatUrl"))),
+                "web_agent_context" => ActionResult.Ok(await store.ReadWorkspaceContextAsync(
+                    String(request.Arguments, "runId"), ContextEnvelope(request.Arguments), cancellationToken).ConfigureAwait(false)),
                 "web_agent_candidate" => ActionResult.Ok(await store.InspectCandidateAsync(
                     String(request.Arguments, "runId"), String(request.Arguments, "downloadedPath"), Assessment(request.Arguments), cancellationToken).ConfigureAwait(false)),
                 "web_agent_fail" => ActionResult.Ok(store.Fail(String(request.Arguments, "runId"), String(request.Arguments, "message"))),
@@ -46,6 +48,16 @@ public sealed class WebAgentNativeController(BrowserAgentStore store)
             assessment.RequirementsMet.Any(string.IsNullOrWhiteSpace) || assessment.RemainingIssues.Any(string.IsNullOrWhiteSpace))
             throw new ArgumentException("assessment fields must be non-empty strings and arrays of non-empty strings.");
         return assessment;
+    }
+
+    private static BrowserContextEnvelope ContextEnvelope(JsonElement arguments)
+    {
+        if (!arguments.TryGetProperty("requests", out var value) || value.ValueKind != JsonValueKind.Array)
+            throw new ArgumentException("requests must be an array.");
+        var requests = JsonSerializer.Deserialize<IReadOnlyList<BrowserContextRequest>>(value.GetRawText(), DeskBridgeJson.Options)
+            ?? throw new ArgumentException("requests are invalid.");
+        if (requests.Any(request => string.IsNullOrWhiteSpace(request.Action))) throw new ArgumentException("Every context request requires an action.");
+        return new BrowserContextEnvelope(requests);
     }
 
     private static string String(JsonElement arguments, string name)

@@ -3,7 +3,8 @@ namespace DeskBridge.Core.Agent;
 public enum AgentRunMode
 {
     ImproveFile = 0,
-    CreateNew = 1
+    CreateNew = 1,
+    WorkspaceContext = 2
 }
 
 public sealed record AgentRunRequest(
@@ -33,6 +34,16 @@ public sealed record BrowserCandidateAssessment(
     string Summary,
     IReadOnlyList<string> RequirementsMet,
     IReadOnlyList<string> RemainingIssues);
+
+public sealed record BrowserContextRequest(
+    string Action,
+    string? Path = null,
+    string? Query = null,
+    int? StartLine = null,
+    int? EndLine = null,
+    int? Depth = null);
+
+public sealed record BrowserContextEnvelope(IReadOnlyList<BrowserContextRequest> Requests);
 
 public sealed record BrowserCandidateResult(
     bool Accepted,
@@ -67,6 +78,7 @@ public sealed record BrowserAgentJob
     public string UserRequest { get; init; } = string.Empty;
     public int MaximumIterations { get; init; } = 4;
     public int Iteration { get; init; }
+    public int ContextRound { get; init; }
     public string Status { get; init; } = "pending";
     public string Stage { get; init; } = "Queued";
     public string Message { get; init; } = "Waiting for ChatGPT Web.";
@@ -93,4 +105,5 @@ public sealed record BrowserAgentClaim(
     string RequiredModel,
     string RequiredReasoning,
     int MaximumIterations,
-    string CandidateToken);
+    string CandidateToken,
+    int MaximumContextRounds = 6);

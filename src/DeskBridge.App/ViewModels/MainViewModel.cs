@@ -48,6 +48,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public string SelectedTheme { get => _selectedTheme; set { _selectedTheme = value; OnPropertyChanged(); } }
     public string SelectedLanguage { get => _selectedLanguage; set { _selectedLanguage = value; OnPropertyChanged(); } }
     public bool IsCreateNewMode { get => _agentMode == AgentRunMode.CreateNew; set { if (value) SetAgentMode(AgentRunMode.CreateNew); } }
+    public bool IsWorkspaceContextMode { get => _agentMode == AgentRunMode.WorkspaceContext; set { if (value) SetAgentMode(AgentRunMode.WorkspaceContext); } }
     public bool IsImproveFileMode { get => _agentMode == AgentRunMode.ImproveFile; set { if (value) SetAgentMode(AgentRunMode.ImproveFile); } }
     public bool RequiresAgentSource => _agentMode == AgentRunMode.ImproveFile;
     public string AgentSourcePath { get => _agentSourcePath; set { _agentSourcePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStartAgent)); } }
@@ -59,9 +60,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public string AgentStatus { get => _agentStatus; private set { _agentStatus = value; OnPropertyChanged(); } }
     public string AgentStatusDetail { get => _agentStatusDetail; private set { _agentStatusDetail = value; OnPropertyChanged(); } }
     public string AgentStartLabel => LocalizationService.Vietnamese
-        ? (RequiresAgentSource ? "Cải thiện bằng ChatGPT Web" : "Tạo bằng ChatGPT Web")
-        : (RequiresAgentSource ? "Improve in ChatGPT Web" : "Create in ChatGPT Web");
-    public string AgentRequirementsText => RequiresAgentSource
+        ? (RequiresAgentSource ? "Cải thiện bằng ChatGPT Web" : IsWorkspaceContextMode ? "Tạo từ workspace bằng ChatGPT Web" : "Tạo bằng ChatGPT Web")
+        : (RequiresAgentSource ? "Improve in ChatGPT Web" : IsWorkspaceContextMode ? "Build from workspace in ChatGPT Web" : "Create in ChatGPT Web");
+    public string AgentRequirementsText => IsWorkspaceContextMode
+        ? (LocalizationService.Vietnamese ? "ChatGPT chỉ được đọc các đoạn ngữ cảnh cần thiết. Tệp nhạy cảm, thư mục build, thao tác ghi, lệnh và Codex đều bị chặn." : "ChatGPT may read only necessary context snippets. Sensitive files, build folders, writes, commands, and Codex are blocked.")
+        : RequiresAgentSource
         ? (LocalizationService.Vietnamese ? "Cần Chrome, tiện ích DeskBridge, tài khoản ChatGPT Web đã đăng nhập, không gian làm việc, tệp nguồn và yêu cầu rõ ràng." : "Requires Chrome, the DeskBridge extension, a signed-in ChatGPT Web account, a workspace, a source file, and a clear request.")
         : (LocalizationService.Vietnamese ? "Cần Chrome, tiện ích DeskBridge, tài khoản ChatGPT Web đã đăng nhập, không gian làm việc và yêu cầu rõ ràng. Không tải tệp trong không gian làm việc lên." : "Requires Chrome, the DeskBridge extension, a signed-in ChatGPT Web account, a workspace, and a clear request. No workspace files are uploaded.");
     public bool IsAgentRunning { get => _isAgentRunning; private set { _isAgentRunning = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStartAgent)); OnPropertyChanged(nameof(CanChangeAgentMode)); OnPropertyChanged(nameof(CanChooseAgentSource)); } }
@@ -269,6 +272,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         if (_agentMode == mode) return;
         _agentMode = mode;
         OnPropertyChanged(nameof(IsCreateNewMode));
+        OnPropertyChanged(nameof(IsWorkspaceContextMode));
         OnPropertyChanged(nameof(IsImproveFileMode));
         OnPropertyChanged(nameof(RequiresAgentSource));
         OnPropertyChanged(nameof(AgentStartLabel));
@@ -329,9 +333,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private void SetReadyStatus()
     {
-        AgentStatus = _agentMode == AgentRunMode.CreateNew ? Localize("Ready to create", "Sẵn sàng tạo mới") : Localize("Ready to improve a file", "Sẵn sàng cải thiện tệp");
+        AgentStatus = _agentMode == AgentRunMode.CreateNew ? Localize("Ready to create", "Sẵn sàng tạo mới") :
+            _agentMode == AgentRunMode.WorkspaceContext ? Localize("Ready with protected context", "Sẵn sàng dùng ngữ cảnh được bảo vệ") : Localize("Ready to improve a file", "Sẵn sàng cải thiện tệp");
         AgentStatusDetail = _agentMode == AgentRunMode.CreateNew
             ? Localize("Describe the new result you want. The workspace is only an output boundary and no files will be uploaded.", "Mô tả kết quả mới bạn muốn. Không gian làm việc chỉ là nơi nhận đầu ra và không có tệp nào được tải lên.")
+            : _agentMode == AgentRunMode.WorkspaceContext
+                ? Localize("Describe the result. ChatGPT may request bounded read-only context; sensitive files and write actions remain blocked.", "Mô tả kết quả. ChatGPT có thể yêu cầu ngữ cảnh chỉ đọc có giới hạn; tệp nhạy cảm và thao tác ghi vẫn bị chặn.")
             : Localize("Choose one file inside the workspace and describe the finished result you want.", "Chọn một tệp trong không gian làm việc và mô tả kết quả hoàn chỉnh bạn muốn.");
     }
 
@@ -354,6 +361,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             "Queued" => "Đã xếp hàng", "Waiting for ChatGPT Web." => "Đang chờ ChatGPT Web.", "Connected" => "Đã kết nối",
             "ChatGPT Web claimed this file task." => "ChatGPT Web đã nhận tác vụ xử lý tệp.", "ChatGPT Web claimed this create-new task." => "ChatGPT Web đã nhận tác vụ tạo mới.",
+            "ChatGPT Web claimed this read-only workspace task." => "ChatGPT Web đã nhận tác vụ workspace chỉ đọc.", "Context ready" => "Ngữ cảnh sẵn sàng",
             "Cancelled" => "Đã hủy", "Web failed" => "Web gặp lỗi", "Verified" => "Đã xác minh", "Idea ready" => "Ý tưởng sẵn sàng",
             "ChatGPT Web" => "ChatGPT Web", "Local verification" => "Kiểm tra cục bộ", "Completed" => "Hoàn tất", "Review needed" => "Cần xem lại",
             _ => value

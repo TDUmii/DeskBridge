@@ -1,4 +1,4 @@
-import { CandidateAssessment, DeskBridgeResponse, WebAgentClaim } from "../shared/protocol.js";
+import { AgentTurn, CandidateAssessment, ContextEnvelope, ContextRequest, DeskBridgeResponse, WebAgentClaim } from "../shared/protocol.js";
 
 const sleep = (milliseconds: number): Promise<void> => new Promise(resolve => window.setTimeout(resolve, milliseconds));
 
@@ -16,6 +16,27 @@ export function parseCandidateAssessment(root: ParentNode): CandidateAssessment 
     } catch { /* Continue to the next code block. */ }
   }
   throw new Error("ChatGPT Web finished without the required deskbridgeAgent JSON block.");
+}
+
+export function parseAgentTurn(root: ParentNode): AgentTurn {
+  for (const code of Array.from(root.querySelectorAll<HTMLElement>("code"))) {
+    const text = code.textContent?.trim();
+    if (!text || (!text.includes("deskbridgeAgent") && !text.includes("deskbridgeContext"))) continue;
+    try {
+      const value = JSON.parse(text) as Partial<CandidateAssessment> & { deskbridgeAgent?: number; deskbridgeContext?: number; requests?: ContextRequest[] };
+      if (value.deskbridgeContext === 1) {
+        if (!Array.isArray(value.requests) || value.requests.length < 1 || value.requests.length > 4) throw new Error("A context response requires 1 to 4 requests.");
+        const allowed = new Set(["workspace_info", "list_directory", "read_file", "search_workspace"]);
+        if (value.requests.some(request => !request || typeof request.action !== "string" || !allowed.has(request.action))) throw new Error("The context response contains an unsupported action.");
+        return { kind: "context", envelope: { requests: value.requests } as ContextEnvelope };
+      }
+      if (value.deskbridgeAgent === 1) return { kind: "candidate", assessment: parseCandidateAssessment(root) };
+    } catch (error) {
+      if (error instanceof SyntaxError) continue;
+      throw error;
+    }
+  }
+  throw new Error("ChatGPT Web finished without a valid DeskBridge context or candidate JSON block.");
 }
 
 export class ChatGptWebAgentAdapter {
@@ -276,13 +297,16 @@ export class ChatGptWebAgentAdapter {
       "ChatGPT Web did not start a response.");
     return this.waitFor(() => {
       if (document.querySelector('[data-testid="stop-button"]')) return null;
-      return turn.querySelector("code")?.textContent?.includes("deskbridgeAgent") ? turn : null;
-    }, 900_000, "ChatGPT Web did not produce a downloadable DeskBridge candidate within 15 minutes.");
+      const code = Array.from(turn.querySelectorAll("code")).find(element => /deskbridgeAgent|deskbridgeContext/.test(element.textContent ?? ""));
+      return code ? turn : null;
+    }, 900_000, "ChatGPT Web did not produce a DeskBridge context request or downloadable candidate within 15 minutes.");
   }
 
   assessment(turn: HTMLElement): CandidateAssessment {
     return parseCandidateAssessment(turn);
   }
+
+  turn(turn: HTMLElement): AgentTurn { return parseAgentTurn(turn); }
 
   candidateControl(turn: ParentNode, filename: string): HTMLElement {
     const controls = Array.from(turn.querySelectorAll<HTMLElement>("a, button"));

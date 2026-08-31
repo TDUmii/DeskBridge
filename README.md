@@ -1,6 +1,6 @@
 # DeskBridge
 
-DeskBridge is a Windows-first ChatGPT Web creation and file agent. Give its desktop Agent an idea alone, or a request plus one workspace file: it opens a dedicated signed-in ChatGPT Web tab, requires GPT-5.6 Sol with High reasoning, downloads and checks each candidate locally, requests revisions in the same web conversation, and saves an accepted result separately. Its Chrome bridge can also run explicit structured file, project, asset, image, application, screenshot, clipboard, and development-tool actions inside one selected workspace.
+DeskBridge is a Windows-first ChatGPT Web creation and file agent. Give its desktop Agent an idea alone, a request that may use protected read-only workspace context, or a request plus one selected file. It opens a dedicated signed-in ChatGPT Web tab, requires GPT-5.6 Sol with High reasoning, downloads and checks each candidate locally, requests revisions in the same web conversation, and saves an accepted result separately. Its Chrome bridge can also run explicit structured file, project, asset, image, application, screenshot, clipboard, and development-tool actions inside one selected workspace.
 
 The Agent is ChatGPT Web-only. It never falls back to Codex, a Codex workspace/task, or the OpenAI Platform API. It requests no API key and never reads ChatGPT cookies, session tokens, browser profiles, or private APIs. DeskBridge exposes no local HTTP API; the local boundary is Chrome Native Messaging.
 
@@ -59,7 +59,7 @@ DeskBridge/
    .\scripts\install-native-host.ps1 -ExtensionId abcdefghijklmnopabcdefghijklmnop
    ```
 
-8. Reload the extension. Its popup should show **Connected** and the selected workspace. Return to Agent, choose **Create new** for an idea-only task or **Improve a file** for one explicit upload, describe the finished result, and start the run. Accepted output appears in `DeskBridge Results`; an original source is retained unchanged.
+8. Reload the extension. Its popup should show **Connected** and the selected workspace. Return to Agent, choose **Create new** for an idea-only task, **Use workspace context** for a project-level request, or **Improve a file** for one explicit upload. Describe the finished result and start the run. Accepted output appears in `DeskBridge Results`; an original source is retained unchanged.
 
 Use **Settings > Language** to switch the Windows app between English and Tiếng Việt. The extension popup has the same language switch and remembers its own choice. Both light and dark modes use the same muted slate-blue and jade palette with matching scrollbars.
 
@@ -67,7 +67,7 @@ The generated manifest contains the local absolute host path and is written to `
 
 ## Install the Windows release
 
-1. Download `DeskBridge-Setup-v1.3.0.exe`.
+1. Download `DeskBridge-Setup-v1.4.0.exe`.
 2. Double-click it and choose **Install DeskBridge**.
 3. The installer copies the app to `%LOCALAPPDATA%\Programs\DeskBridge`, registers the native host, creates Start menu and desktop shortcuts, opens DeskBridge, opens `chrome://extensions`, and copies the installed extension path to the clipboard.
 4. In Chrome, enable **Developer mode**, choose **Load unpacked**, paste the copied path, and approve the extension. Allow the protected in-tab input permission if Chrome requests it.
@@ -82,13 +82,19 @@ To uninstall, open Windows **Installed apps**, find **DeskBridge**, and choose *
 
 Choose a workspace, leave **Create new** selected, and describe the complete downloadable result. No source file, workspace path, or existing workspace content is sent to ChatGPT Web. DeskBridge requests one finished file or a ZIP for multi-file projects, checks the downloaded artifact locally, rejects unsafe ZIP paths and suspicious expansion ratios, and saves accepted output under `DeskBridge Results` without overwriting existing work.
 
+## Build from protected workspace context
+
+Choose **Use workspace context** when the request depends on an existing project but no single source file is enough. ChatGPT Web starts with only the written request and a virtual `workspace:/` boundary. It can then ask for up to four read-only operations per context round: workspace summary, directory listing, bounded text-file read, or bounded text search. DeskBridge allows at most six rounds, returns no absolute path, and treats all returned project text as untrusted data rather than instructions.
+
+Sensitive files such as environment files, private keys, credentials, browser databases, and common secret directories are blocked. Build output, dependency caches, Git internals, and `.deskbridge` evidence are skipped. Add workspace-relative wildcard patterns to `.deskbridgeignore`, one per line, to exclude additional private or irrelevant content. This mode has no write, delete, command, application-control, Codex, API, MCP, OAuth, or public-tunnel channel. The final artifact still enters the same token-bound download and local inspection loop.
+
 ## How it works
 
 ### Autonomous file agent
 
 The Agent first creates a workspace-local evidence directory, then opens `https://chatgpt.com/?deskbridge-agent=1`. Improve-file also preserves the selected source under `.deskbridge/web-agent-runs/<run-id>/original`; create-new has no original directory. Only the marked tab may claim the job. Before the first prompt and every revision, the extension verifies that GPT-5.6 Sol is checked and the reasoning slider is at High (3/3). If verification fails, it stops without sending and does not switch transport.
 
-Create-new sends only the written request and never invokes the source upload path. Improve-file reconstructs the one selected source from bounded Native Messaging chunks and attaches it with ChatGPT Web's visible file input. Each response must provide a direct downloadable artifact whose filename contains a unique run token and a structured assessment. The service worker watches that exact download; the host rejects mismatched, stale, or tokenless files.
+Create-new sends only the written request and never invokes the source upload path. Workspace-context returns only explicitly requested, policy-filtered text through bounded Native Messaging responses. Improve-file reconstructs the one selected source from bounded Native Messaging chunks and attaches it with ChatGPT Web's visible file input. Each response must provide a direct downloadable artifact whose filename contains a unique run token and a structured assessment. The service worker watches that exact download; the host rejects mismatched, stale, or tokenless files.
 
 Candidates are copied into `.deskbridge/web-agent-runs/<run-id>/versions` and inspected locally. Completion requires score 90 or greater and no declared remaining issue. Otherwise DeskBridge sends local inspection evidence back to the same ChatGPT Web conversation for another bounded pass. Reaching the limit preserves the best version for review without claiming success.
 
@@ -149,6 +155,7 @@ The converter uses the bundled Codex Node runtime when available, otherwise `npx
 - Commands use an executable whitelist and `ProcessStartInfo.ArgumentList`. PowerShell, pwsh, CMD, WSH, unknown executables, destructive Git subcommands, and force flags are blocked. Timeout terminates the process tree.
 - Downloads accept HTTPS only, manually validate every redirect, pin connections to DNS addresses already checked as public, limit payloads to 20 MB, and require MIME/magic-byte agreement.
 - Native Messaging uses stdin/stdout only. DeskBridge does not bind `0.0.0.0`, `127.0.0.1`, or any other listening socket in production.
+- Workspace-context is read-only and request-bounded. It returns virtual paths only, blocks sensitive and ignored paths natively, and never treats project content as permission or executable instructions.
 - Logs contain timestamp, action, target, result, and duration only - never file/clipboard content, screenshot bytes, browser credentials, or tokens. Web-agent evidence contains the request, local paths, inspection metadata, hashes, and candidate files.
 
 See [security.md](docs/security.md) for the threat model and honest interpreter limitation.
@@ -203,6 +210,8 @@ Use `run_command` with `program: "git"`, an argument array, and a working direct
 
 The package is written to `artifacts\DeskBridge-win-x64`. It is self-contained for Windows x64 and includes the App, Host, extension build, license, and third-party notices. Source control excludes packages, build outputs, Node modules, logs, generated manifests, and personal settings.
 
+Pushing a `v*` tag runs the Windows release workflow, repeats build and tests on a clean runner, creates the one-file installer and checksum, and publishes both to a new immutable GitHub release. Existing releases are preserved.
+
 ## Troubleshooting
 
 ### Popup says disconnected
@@ -254,6 +263,7 @@ Install Node.js 20+ with npm, restart DeskBridge, and confirm `npx.cmd` is avail
 - The extension is loaded unpacked and native host installation is a PowerShell step; there is no signed installer or Chrome Web Store distribution.
 - V1 captures only the primary monitor.
 - The Agent requires a signed-in ChatGPT Web account where GPT-5.6 Sol and High are available. It will not silently substitute another model. Local inspection validates file structure and extractable content but cannot prove every subjective visual requirement.
+- Workspace-context can expose selected project text to the signed-in ChatGPT Web conversation. Review the chosen workspace and use `.deskbridgeignore` for project-specific exclusions before starting that mode.
 
 ## License
 

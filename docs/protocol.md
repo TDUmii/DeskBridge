@@ -61,6 +61,8 @@ Errors use a stable code and a recoverable message:
 | Images | `inspect_image`, `resize_image`, `compress_image`, `convert_image` |
 | Documents | `convert_document_to_markdown` |
 
+Dedicated Agent tabs also use internal `web_agent_*` messages. `web_agent_context` is accepted only for a run created in workspace-context mode. Its request array is limited to `workspace_info`, `list_directory`, `read_file`, and `search_workspace`; the native host applies workspace, sensitivity, ignore, file-size, line-count, result-count, total-character, and round-count limits before returning data.
+
 ## Error codes
 
 `INVALID_REQUEST`, `UNKNOWN_ACTION`, `ACTION_NOT_ALLOWED`, `PERMISSION_DENIED`, `WORKSPACE_VIOLATION`, `FILE_NOT_FOUND`, `FILE_ALREADY_EXISTS`, `APP_NOT_FOUND`, `COMMAND_NOT_ALLOWED`, `COMMAND_TIMEOUT`, `EXECUTION_FAILED`, `INTERNAL_ERROR`, `INVALID_URL`, `UNSUPPORTED_PROTOCOL`, `PRIVATE_NETWORK_BLOCKED`, `DOWNLOAD_TOO_LARGE`, `DOWNLOAD_TIMEOUT`, `INVALID_CONTENT_TYPE`, `UNSUPPORTED_IMAGE_FORMAT`, `IMAGE_PROCESSING_FAILED`, `PATCH_TARGET_NOT_FOUND`, `PATCH_TARGET_NOT_UNIQUE`, `PROJECT_PATH_INVALID`, `ASSET_IMPORT_DENIED`, `SKILL_DISABLED`, `SKILL_RUNTIME_UNAVAILABLE`, `UNSUPPORTED_DOCUMENT_FORMAT`, `DOCUMENT_CONVERSION_FAILED`, and `DOCUMENT_OCR_REQUIRED`.

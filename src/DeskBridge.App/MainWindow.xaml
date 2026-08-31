@@ -42,17 +42,24 @@
                                         <TextBlock Text="{DynamicResource ChooseStart}" FontSize="17" FontWeight="SemiBold" Margin="10,3,0,0"/>
                                     </StackPanel>
                                     <TextBlock Text="{DynamicResource ChooseStartHelp}" Foreground="{DynamicResource MutedBrush}" Margin="38,0,0,10"/>
-                                    <Grid Margin="38,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <Grid Margin="38,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
                                         <RadioButton GroupName="AgentMode" Style="{StaticResource AgentModeCard}" IsChecked="{Binding IsCreateNewMode, Mode=TwoWay}" IsEnabled="{Binding CanChangeAgentMode}" AutomationProperties.Name="Create new from an idea">
                                             <StackPanel><TextBlock Text="{DynamicResource CreateNew}" FontWeight="SemiBold" FontSize="14"/><TextBlock Text="{DynamicResource CreateNewHelp}" Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,3,0,0"/></StackPanel>
                                         </RadioButton>
-                                        <RadioButton Grid.Column="1" GroupName="AgentMode" Style="{StaticResource AgentModeCard}" Margin="8,0,0,0" IsChecked="{Binding IsImproveFileMode, Mode=TwoWay}" IsEnabled="{Binding CanChangeAgentMode}" AutomationProperties.Name="Improve an existing file">
+                                        <RadioButton Grid.Column="1" GroupName="AgentMode" Style="{StaticResource AgentModeCard}" Margin="8,0,0,0" IsChecked="{Binding IsWorkspaceContextMode, Mode=TwoWay}" IsEnabled="{Binding CanChangeAgentMode}" AutomationProperties.Name="Use protected workspace context">
+                                            <StackPanel><TextBlock Text="{DynamicResource WorkspaceContext}" FontWeight="SemiBold" FontSize="14"/><TextBlock Text="{DynamicResource WorkspaceContextHelp}" Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,3,0,0"/></StackPanel>
+                                        </RadioButton>
+                                        <RadioButton Grid.Column="2" GroupName="AgentMode" Style="{StaticResource AgentModeCard}" Margin="8,0,0,0" IsChecked="{Binding IsImproveFileMode, Mode=TwoWay}" IsEnabled="{Binding CanChangeAgentMode}" AutomationProperties.Name="Improve an existing file">
                                             <StackPanel><TextBlock Text="{DynamicResource ImproveFile}" FontWeight="SemiBold" FontSize="14"/><TextBlock Text="{DynamicResource ImproveFileHelp}" Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,3,0,0"/></StackPanel>
                                         </RadioButton>
                                     </Grid>
 
                                     <Border Visibility="{Binding IsCreateNewMode, Converter={StaticResource BooleanToVisibilityConverter}}" Background="{DynamicResource SuccessSurfaceBrush}" BorderBrush="{DynamicResource SuccessBrush}" BorderThickness="1" CornerRadius="11" Padding="10,8" Margin="38,0,0,14">
                                         <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource OutputWorkspace}" FontSize="11" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding Workspace}" FontWeight="SemiBold" Margin="0,3,16,0" TextTrimming="CharacterEllipsis"/><TextBlock Text="{DynamicResource NoPathsSent}" Foreground="{DynamicResource SuccessBrush}" FontSize="11" Margin="0,3,0,0"/></StackPanel><TextBlock Grid.Column="1" Text="{DynamicResource RequestOnly}" Foreground="{DynamicResource SuccessBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/></Grid>
+                                    </Border>
+
+                                    <Border Visibility="{Binding IsWorkspaceContextMode, Converter={StaticResource BooleanToVisibilityConverter}}" Background="{DynamicResource AccentSoftBrush}" BorderBrush="{DynamicResource FocusBrush}" BorderThickness="1" CornerRadius="11" Padding="10,8" Margin="38,0,0,14">
+                                        <StackPanel><TextBlock Text="{DynamicResource ReadOnlyContext}" FontWeight="SemiBold"/><TextBlock Text="{DynamicResource ReadOnlyContextHelp}" Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,3,0,0"/></StackPanel>
                                     </Border>
 
                                     <Grid Visibility="{Binding IsImproveFileMode, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="38,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBox Text="{Binding AgentSourcePath, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" MinHeight="42" VerticalContentAlignment="Center" AutomationProperties.Name="Selected source file"/><Button Grid.Column="1" Content="{DynamicResource ChooseFile}" Margin="8,0,0,0" IsEnabled="{Binding CanChooseAgentSource}" Click="ChooseAgentFile_Click"/></Grid>

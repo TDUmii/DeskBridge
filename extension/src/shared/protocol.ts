@@ -4,7 +4,7 @@ export const allowedActions = new Set([
   "open_folder", "open_app", "open_project", "open_in_browser", "preview_web", "run_command",
   "capture_screen", "get_active_window", "download_asset", "import_asset", "inspect_image",
   "resize_image", "compress_image", "convert_image", "get_skill_profile", "convert_document_to_markdown",
-  "web_agent_claim", "web_agent_source_chunk", "web_agent_progress", "web_agent_candidate", "web_agent_fail"
+  "web_agent_claim", "web_agent_source_chunk", "web_agent_progress", "web_agent_context", "web_agent_candidate", "web_agent_fail"
 ]);
 
 export interface DeskBridgeRequest {
@@ -33,7 +33,20 @@ export interface WebAgentClaim {
   requiredReasoning: string;
   maximumIterations: number;
   candidateToken: string;
+  maximumContextRounds?: number;
 }
+
+export interface ContextRequest {
+  action: "workspace_info" | "list_directory" | "read_file" | "search_workspace";
+  path?: string;
+  query?: string;
+  startLine?: number;
+  endLine?: number;
+  depth?: number;
+}
+
+export interface ContextEnvelope { requests: ContextRequest[]; }
+export type AgentTurn = { kind: "candidate"; assessment: CandidateAssessment } | { kind: "context"; envelope: ContextEnvelope };
 
 export interface CandidateAssessment {
   candidateFile: string;

@@ -12,7 +12,7 @@ C# and .NET 8 power the WPF control panel, local verifier, and Chrome Native Mes
 
 ## Product purpose
 
-DeskBridge turns an idea or file request into a bounded ChatGPT Web workflow. It can create from the request alone or preserve and upload one explicitly selected source, opens a dedicated web tab, requires GPT-5.6 Sol with High reasoning, downloads each proposed artifact, checks it locally, and asks the same web conversation for revisions until the completion gate passes or the configured pass limit is reached.
+DeskBridge turns an idea, project-level request, or file request into a bounded ChatGPT Web workflow. It can create from the request alone, expose selective read-only workspace context, or preserve and upload one explicitly selected source. It opens a dedicated web tab, requires GPT-5.6 Sol with High reasoning, downloads each proposed artifact, checks it locally, and asks the same web conversation for revisions until the completion gate passes or the configured pass limit is reached.
 
 ## Non-negotiable boundary
 
@@ -20,7 +20,7 @@ The Agent is ChatGPT Web-only. It never switches to Codex, creates or uses a Cod
 
 ## Operating context
 
-The user runs one self-contained Windows installer, completes Chrome's required visible extension confirmation, signs in to ChatGPT normally, selects one local workspace, chooses create-new or improve-file mode, then describes the finished outcome. Create-new uploads no workspace files or local paths. Improve-file uploads only the explicit source and keeps the original unchanged. Accepted output appears in `DeskBridge Results`; every candidate and inspection record stays in a workspace-local evidence directory.
+The user runs one self-contained Windows installer, completes Chrome's required visible extension confirmation, signs in to ChatGPT normally, selects one local workspace, chooses create-new, workspace-context, or improve-file mode, then describes the finished outcome. Create-new uploads no workspace files or local paths. Workspace-context returns only narrow native-filtered reads with virtual paths. Improve-file uploads only the explicit source and keeps the original unchanged. Accepted output appears in `DeskBridge Results`; every candidate and inspection record stays in a workspace-local evidence directory.
 
 ## Capabilities and constraints
 
@@ -31,6 +31,7 @@ The user runs one self-contained Windows installer, completes Chrome's required 
 - Only a tab opened with the DeskBridge agent marker may claim autonomous jobs; normal ChatGPT tabs are not polled for work.
 - Model and reasoning are locked to GPT-5.6 Sol and High (3/3) and verified before sending.
 - Create-new sends only the user's request. Improve-file transfers only the selected source through the visible file-upload control. No cookies, tokens, browser profile data, private endpoints, or API keys are accessed.
+- Workspace-context permits at most four read-only requests per round and six rounds. It blocks sensitive paths, ignored content, writes, commands, MCP, OAuth, and tunnels; all returned project text is untrusted data.
 - Downloads require the run's unique filename token before local inspection.
 - The original file cannot be overwritten. Completion requires a locally inspected candidate, score at least 90, and no declared remaining issue.
 - Existing explicit action blocks remain permission- and workspace-guarded.

@@ -12,7 +12,9 @@ ChatGPT page content and generated files are untrusted. The native host and loca
 
 ## Data flow
 
-Starting a run explicitly authorizes sending the selected file copy and request text through ChatGPT Web. File bytes travel from the native host to the extension in bounded chunks and are assigned to the page's visible upload input. Revisions send local inspection summaries back into the same conversation. No unrelated workspace file is uploaded.
+Starting a create-new run authorizes only the request text. Starting an improve-file run authorizes sending the selected file copy and request text through ChatGPT Web. File bytes travel from the native host to the extension in bounded chunks and are assigned to the page's visible upload input. Starting a workspace-context run authorizes native-filtered read-only excerpts requested by the same marked tab. Each response uses virtual paths, and sensitive files, common generated folders, `.deskbridge`, and `.deskbridgeignore` matches are blocked. Workspace text is wrapped as untrusted data and does not grant permission. Revisions send local inspection summaries back into the same conversation.
+
+Workspace-context has no write, delete, command, application-control, MCP, OAuth, tunnel, or network-listener operation. Each round contains one to four allowed requests, each file read/search is size-bounded, the combined response is capped, and a run stops accepting context after six rounds.
 
 ## Download trust
 

@@ -10,7 +10,7 @@ let language: Language = "en";
 
 function applyLanguage(): void {
   document.documentElement.lang = language;
-  const ids: Record<string, string> = { subtitle: "subtitle", status: "checking", "workspace-label": "workspaceScope", workspace: "unavailable", "transport-label": "transport", "web-only": "webOnly", "web-guard": "webGuard", "no-fallback": "noFallback", "skills-label": "enabledSkills", skills: "none", open: "open", disconnect: "disconnect", "language-label": "language" };
+  const ids: Record<string, string> = { subtitle: "subtitle", status: "checking", "workspace-label": "workspaceScope", workspace: "unavailable", "transport-label": "transport", "web-only": "webOnly", "web-guard": "webGuard", "no-fallback": "noFallback", "context-label": "contextAccess", "context-access": "contextReadOnly", "context-guard": "contextGuard", "skills-label": "enabledSkills", skills: "none", open: "open", disconnect: "disconnect", "language-label": "language" };
   for (const [id, key] of Object.entries(ids)) document.querySelector<HTMLElement>(`#${id}`)!.textContent = t(language, key);
 }
 

@@ -10,6 +10,7 @@ DeskBridge.App
 
 Dedicated ChatGPT Web tab
   -> Manifest V3 content adapter verifies GPT-5.6 Sol + High (3/3)
+  -> optional bounded workspace context requests
   -> visible file input and composer
   -> service worker watches the declared download
   -> Chrome Native Messaging
@@ -30,7 +31,7 @@ Dedicated ChatGPT Web tab
 
 A job moves through pending, claimed, ChatGPT Web work, local verification, optional revision, and one terminal state: completed, needs_review, failed, or cancelled. The content script claims work only when the URL/session marker identifies a dedicated DeskBridge tab. It verifies the checked GPT-5.6 Sol menu item and maximum reasoning slider before the initial prompt and every revision.
 
-The extension reconstructs only the preserved source copy from bounded native chunks and assigns it to ChatGPT's visible file input. ChatGPT must attach a downloadable candidate and a structured assessment. The extension arms an exact-filename download watch before clicking. The host requires the unique per-run token and rejects a candidate that predates the run.
+In workspace-context mode, ChatGPT may emit a structured read-only context request. The host permits at most four summary, list, bounded read, or bounded search operations per round and six rounds per run. It returns virtual `workspace:/` paths, skips sensitive and ignored content, and never exposes a write or command operation. In improve-file mode, the extension reconstructs only the preserved source copy from bounded native chunks and assigns it to ChatGPT's visible file input. ChatGPT must eventually attach a downloadable candidate and a structured assessment. The extension arms an exact-filename download watch before clicking. The host requires the unique per-run token and rejects a candidate that predates the run.
 
 ## Local completion gate
 

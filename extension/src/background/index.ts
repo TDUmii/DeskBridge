@@ -69,7 +69,7 @@ function request(action: string, args: Record<string, unknown>): DeskBridgeReque
 chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
   if (!message || typeof message !== "object") return false;
   const envelope = message as { type?: string; request?: DeskBridgeRequest; runId?: string; offset?: number; maxBytes?: number;
-    stage?: string; message?: string; chatUrl?: string; downloadedPath?: string; assessment?: unknown; expectedFilename?: string; token?: string; text?: string };
+    stage?: string; message?: string; chatUrl?: string; downloadedPath?: string; assessment?: unknown; requests?: unknown; expectedFilename?: string; token?: string; text?: string };
   if (envelope.type === "disconnect") {
     port?.disconnect(); port = null; sendResponse({ success: true }); return false;
   }
@@ -80,6 +80,9 @@ chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) =
   }
   if (envelope.type === "webAgentProgress") {
     send(request("web_agent_progress", { runId: envelope.runId, stage: envelope.stage, message: envelope.message, chatUrl: envelope.chatUrl })).then(sendResponse); return true;
+  }
+  if (envelope.type === "webAgentContext") {
+    send(request("web_agent_context", { runId: envelope.runId, requests: envelope.requests })).then(sendResponse); return true;
   }
   if (envelope.type === "webAgentCandidate") {
     send(request("web_agent_candidate", { runId: envelope.runId, downloadedPath: envelope.downloadedPath, assessment: envelope.assessment })).then(sendResponse); return true;
