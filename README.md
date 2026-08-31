@@ -67,7 +67,7 @@ The generated manifest contains the local absolute host path and is written to `
 
 ## Install the Windows release
 
-1. Download `DeskBridge-Setup-v1.4.0.exe`.
+1. Download `DeskBridge-Setup-v1.4.1.exe`.
 2. Double-click it and choose **Install DeskBridge**.
 3. The installer copies the app to `%LOCALAPPDATA%\Programs\DeskBridge`, registers the native host, creates Start menu and desktop shortcuts, opens DeskBridge, opens `chrome://extensions`, and copies the installed extension path to the clipboard.
 4. In Chrome, enable **Developer mode**, choose **Load unpacked**, paste the copied path, and approve the extension. Allow the protected in-tab input permission if Chrome requests it.

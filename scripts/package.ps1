@@ -75,7 +75,7 @@ if (Test-Path -LiteralPath $checksumPath) { Remove-Item -LiteralPath $checksumPa
 $setupPublish = Join-Path $resolvedInstallerStage 'publish'
 dotnet publish (Join-Path $repositoryRoot 'src\DeskBridge.Setup\DeskBridge.Setup.csproj') `
     -c Release -r win-x64 --self-contained true `
-    -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true `
+    -p:PublishSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false `
     "-p:InstallerPayload=$payloadPath" `
     "-p:PathMap=$repositoryRoot=/_/" `
